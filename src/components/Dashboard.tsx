@@ -649,15 +649,8 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          {!walletAddress ? (
-            <div className="text-center py-8">
-              <Wallet className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-600 mb-2">Connect your wallet to view and manage your credits</p>
-              <p className="text-sm text-gray-500">Your credits are secured on Ethereum blockchain</p>
-            </div>
-          ) : (
             <div className="space-y-4">
-              {/* Show verified actions as owned credits */}
+              {/* Show verified actions as owned credits — always visible; wallet only gates on-chain transfer */}
               {state.actions.filter(a => a.status === 'verified').length > 0 ? (
                 <div className="grid md:grid-cols-2 gap-4">
                   {state.actions.filter(a => a.status === 'verified').map((action) => (
@@ -699,13 +692,14 @@ export default function Dashboard() {
                           </Button>
                         )}
                         <Button
-                          onClick={() => handleTransferCredit(action)}
+                          onClick={() => walletAddress ? handleTransferCredit(action) : handleConnectWallet()}
                           variant="outline"
                           size="sm"
                           className="w-full text-xs"
+                          title={walletAddress ? 'Transfer this credit on-chain' : 'Connect your wallet to transfer'}
                         >
                           <Send className="h-4 w-4 mr-2" />
-                          Transfer Credit
+                          {walletAddress ? 'Transfer Credit' : 'Connect Wallet to Transfer'}
                         </Button>
                       </div>
                     </div>
@@ -741,7 +735,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-          )}
         </CardContent>
       </Card>
 
