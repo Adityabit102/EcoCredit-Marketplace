@@ -320,7 +320,7 @@ export default function Dashboard() {
         description: selectedActionForListing.description,
         price: listingPrice,
         credits: selectedActionForListing.credits,
-        co2Offset: selectedActionForListing.co2Offset,
+        co2Offset: selectedActionForListing.co2Offset ?? selectedActionForListing.co2Estimate ?? 0,
         location: selectedActionForListing.location,
         imageUrl: selectedActionForListing.image || selectedActionForListing.imageUrl
       })
@@ -679,7 +679,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <span className="text-gray-600">CO₂ Offset:</span>
-                          <div className="font-semibold text-green-600">{action.co2Offset}t</div>
+                          <div className="font-semibold text-green-600">{action.co2Offset ?? action.co2Estimate}t</div>
                         </div>
                         <div className="col-span-2">
                           <span className="text-gray-600">Date:</span>
@@ -836,7 +836,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <span className="text-gray-600">CO₂ Offset:</span>
-                    <div className="font-semibold">{selectedCredit.co2Offset}t</div>
+                    <div className="font-semibold">{selectedCredit.co2Offset ?? selectedCredit.co2Estimate}t</div>
                   </div>
                   <div className="col-span-2">
                     <span className="text-gray-600">Description:</span>
@@ -955,7 +955,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <span className="text-gray-600">CO₂ Offset:</span>
-                    <div className="font-semibold">{selectedActionForListing.co2Offset}t</div>
+                    <div className="font-semibold">{selectedActionForListing.co2Offset ?? selectedActionForListing.co2Estimate}t</div>
                   </div>
                 </div>
               </div>
