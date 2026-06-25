@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Leaf, Award, MapPin, Coins, ArrowLeft } from 'lucide-react'
+import { Leaf, Award, MapPin, Coins, ArrowLeft, Star } from 'lucide-react'
 import { api } from '../services/api'
 
 export default function PublicProfile({ userId, onBack }: { userId: string; onBack: () => void }) {
   const [data, setData] = useState<any>(null)
+  const [reviews, setReviews] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     api.users.publicProfile(userId).then(setData).catch(() => setData(null)).finally(() => setLoading(false))
+    api.reviews.forSeller(userId).then((d) => setReviews(d.reviews || [])).catch(() => {})
   }, [userId])
 
   if (loading) return <div className="text-center text-muted-foreground py-20">Loading profile…</div>
@@ -43,6 +45,25 @@ export default function PublicProfile({ userId, onBack }: { userId: string; onBa
           )}
         </div>
       </motion.div>
+
+      {reviews.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-pine mb-4 flex items-center gap-2"><Star className="w-5 h-5 text-yellow-400 fill-yellow-400" /> Reviews ({reviews.length})</h2>
+          <div className="space-y-3">
+            {reviews.map((r) => (
+              <div key={r._id} className="rounded-2xl glass p-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-pine">{r.reviewer?.name || 'Buyer'}</span>
+                  <span className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => <Star key={n} className={`w-4 h-4 ${n <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />)}
+                  </span>
+                </div>
+                {r.comment && <p className="text-sm text-muted-foreground mt-2">{r.comment}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {data.listings?.length > 0 && (
         <div className="mt-8">

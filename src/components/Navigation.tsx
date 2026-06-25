@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
-import { Leaf, Menu, User, LogOut, Heart } from "lucide-react"
+import { Leaf, Menu, User, LogOut, Heart, Settings } from "lucide-react"
 import NotificationBell from "./NotificationBell"
 import GradientButton from "./ui/GradientButton"
 
@@ -71,6 +71,10 @@ export default function Navigation({ currentPage, onNavigate, isAuthenticated, u
                   <Heart className="w-5 h-5" />
                 </button>
                 <NotificationBell />
+                <button onClick={() => onNavigate('settings')} aria-label="Settings"
+                  className={`rounded-full p-2 transition-colors ${currentPage === 'settings' ? 'text-pine bg-secondary/70' : 'text-pine hover:bg-secondary/70'}`}>
+                  <Settings className="w-5 h-5" />
+                </button>
                 <div className="mx-1 h-6 w-px bg-border" />
                 <span className="hidden lg:block max-w-[140px] truncate text-sm text-muted-foreground">{userEmail}</span>
                 <Button variant="outline" size="sm" onClick={onLogout} className="ml-1 rounded-full">
@@ -108,7 +112,7 @@ export default function Navigation({ currentPage, onNavigate, isAuthenticated, u
                         </div>
                       </div>
                       <div className="space-y-2">
-                        {[...navItems, { id: 'favorites', label: 'Favorites', icon: '❤️' }].map((item) => (
+                        {[...navItems, { id: 'favorites', label: 'Favorites', icon: '❤️' }, { id: 'settings', label: 'Settings', icon: '⚙️' }].map((item) => (
                           <button key={item.id} onClick={() => handleMobileNavigate(item.id)}
                             className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${
                               currentPage === item.id ? 'bg-secondary text-pine border-l-4 border-primary' : 'text-muted-foreground hover:bg-secondary'}`}>

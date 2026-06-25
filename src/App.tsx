@@ -14,6 +14,7 @@ import Favorites from "./components/Favorites"
 import Rewards from "./components/Rewards"
 import Admin from "./components/Admin"
 import Calculator from "./components/Calculator"
+import Settings from "./components/Settings"
 import PublicProfile from "./components/PublicProfile"
 import ProofPage from "./components/ProofPage"
 import ResetPassword from "./components/ResetPassword"
@@ -22,7 +23,7 @@ import EcoBot from "./components/EcoBot"
 import Footer from "./components/Footer"
 import NotificationSystem from "./components/NotificationSystem"
 
-const KNOWN_PAGES = ['about', 'login', 'register', 'home', 'submit', 'marketplace', 'dashboard', 'impact', 'leaderboard', 'favorites', 'rewards', 'calculator', 'admin']
+const KNOWN_PAGES = ['about', 'login', 'register', 'home', 'submit', 'marketplace', 'dashboard', 'impact', 'leaderboard', 'favorites', 'rewards', 'calculator', 'settings', 'admin']
 
 function AppContent() {
   const { state, dispatch } = useApp()
@@ -95,6 +96,8 @@ function AppContent() {
         return <Rewards />
       case 'calculator':
         return <Calculator />
+      case 'settings':
+        return <Settings />
       case 'admin':
         return <Admin />
       default:

@@ -27,6 +27,14 @@ export default function NotificationBell() {
 
   const markAll = async () => { await api.notifications.markAllRead(); setUnread(0); setItems((x) => x.map((n) => ({ ...n, read: true }))) }
 
+  const markOne = async (n: any) => {
+    if (!n.read) {
+      api.notifications.markRead(n._id).catch(() => {})
+      setItems((x) => x.map((i) => (i._id === n._id ? { ...i, read: true } : i)))
+      setUnread((u) => Math.max(0, u - 1))
+    }
+  }
+
   return (
     <div className="relative" ref={ref}>
       <button onClick={() => { setOpen((o) => !o); if (!open) load() }}
@@ -55,7 +63,8 @@ export default function NotificationBell() {
               {items.length === 0 ? (
                 <div className="py-10 text-center text-sm text-muted-foreground">You're all caught up 🌿</div>
               ) : items.map((n) => (
-                <div key={n._id} className={`flex gap-3 px-4 py-3 border-b border-border/50 ${n.read ? '' : 'bg-secondary/40'}`}>
+                <div key={n._id} onClick={() => markOne(n)}
+                  className={`flex gap-3 px-4 py-3 border-b border-border/50 cursor-pointer hover:bg-secondary/60 transition-colors ${n.read ? '' : 'bg-secondary/40'}`}>
                   <span className="text-lg">{ICON[n.type] || 'ℹ️'}</span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-pine">{n.title}</p>
