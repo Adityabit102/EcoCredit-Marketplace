@@ -40,25 +40,23 @@ class BlockchainService {
   /**
    * Connect user's wallet (MetaMask)
    */
-  async connectWallet(): Promise<{ address: string; signer: ethers.Signer } | null> {
-    try {
-      if (typeof window.ethereum === 'undefined') {
-        throw new Error('MetaMask is not installed. Please install MetaMask to interact with blockchain.');
-      }
+  async connectWallet(): Promise<{ address: string; signer: ethers.Signer }> {
+    // No MetaMask (or any injected wallet) → tell the user exactly what to do.
+    if (typeof window === 'undefined' || typeof window.ethereum === 'undefined') {
+      throw new Error('No wallet detected. Install the MetaMask browser extension (metamask.io), then refresh and try again.');
+    }
 
-      // Request account access
+    try {
       await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
-      // Create provider and signer
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
-
       console.log('[Blockchain] Wallet connected:', address);
       return { address, signer };
-    } catch (error) {
-      console.error('[Blockchain] Wallet connection failed:', error);
-      return null;
+    } catch (error: any) {
+      // surface the real reason (user rejected, locked wallet, wrong network, …)
+      if (error?.code === 4001) throw new Error('Connection request was rejected in MetaMask.');
+      throw new Error(error?.message || 'Could not connect wallet. Make sure MetaMask is unlocked.');
     }
   }
 

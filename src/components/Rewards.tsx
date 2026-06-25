@@ -44,7 +44,10 @@ export default function Rewards() {
     setCopied(true); setTimeout(() => setCopied(false), 1800)
     dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: 'Referral link copied!' } })
   }
-  const downloadCert = () => window.open(api.certificates.downloadUrl(), '_blank')
+  const downloadCert = async () => {
+    try { await api.certificates.download() }
+    catch { dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: 'Could not download certificate. Try again.' } }) }
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">

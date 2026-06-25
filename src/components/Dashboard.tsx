@@ -51,7 +51,10 @@ export default function Dashboard() {
   const level = eco?.level ?? 1
   const xpIntoLevel = xp - Math.pow(level - 1, 2) * 100
   const xpForNext = Math.pow(level, 2) * 100 - Math.pow(level - 1, 2) * 100
-  const downloadCertificate = () => window.open(api.certificates.downloadUrl(), '_blank')
+  const downloadCertificate = async () => {
+    try { await api.certificates.download() }
+    catch { dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: 'Could not download certificate. Try again.' } }) }
+  }
 
   // Calculate stats from real data
   const stats = useMemo(() => {

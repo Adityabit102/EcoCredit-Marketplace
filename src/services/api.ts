@@ -132,6 +132,19 @@ export const api = {
   },
   certificates: {
     downloadUrl: () => `${API_URL}/certificates/download`,
+    // fetch the PDF WITH the auth header, then trigger a browser download from the blob
+    download: async () => {
+      const res = await fetchWithAuth('/certificates/download')
+      const blob = await (res as Response).blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'ecocredit-offset-certificate.pdf'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    },
   },
   payments: {
     status: () => fetchWithAuth('/payments/status'),

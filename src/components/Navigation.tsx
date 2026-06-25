@@ -32,13 +32,13 @@ export default function Navigation({ currentPage, onNavigate, isAuthenticated, u
   const handleMobileLogout = () => { onLogout?.(); setIsMobileMenuOpen(false) }
 
   const Logo = (
-    <div className="flex items-center cursor-pointer group" onClick={() => onNavigate(isAuthenticated ? 'home' : 'about')}>
+    <div className="flex items-center cursor-pointer group shrink-0 mr-4" onClick={() => onNavigate(isAuthenticated ? 'home' : 'about')}>
       <div className="flex items-center gap-2.5">
-        <div className="p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105"
+        <div className="p-2 rounded-xl shadow-sm transition-transform group-hover:scale-105 shrink-0"
           style={{ background: 'linear-gradient(135deg,#3E5F55,#6FA690)' }}>
           <Leaf className="h-5 w-5 text-cream" />
         </div>
-        <span className="text-xl font-bold text-gradient tracking-tight">EcoCredit India</span>
+        <span className="text-xl font-bold text-gradient tracking-tight whitespace-nowrap">EcoCredit India</span>
       </div>
     </div>
   )
