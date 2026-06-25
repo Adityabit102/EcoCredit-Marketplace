@@ -54,5 +54,6 @@ ml/dataset/
 ml/saved_model/
 ml/venv/
 ml/labels.json
+# small scikit-learn weights ship with the app; the large image model does not
 server/ml-model/*
-!server/ml-model/validator.json   # small scikit-learn weights — ship with the app
+!server/ml-model/validator.json

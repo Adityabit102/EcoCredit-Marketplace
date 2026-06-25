@@ -1,0 +1,41 @@
+{
+  "features": [
+    "log_ratio",
+    "co2_estimate",
+    "has_geotag",
+    "desc_norm"
+  ],
+  "mean": [
+    0.42851784957232447,
+    38.535720193267686,
+    0.5746875,
+    0.2656218749999991
+  ],
+  "scale": [
+    1.018406895658059,
+    88.77551525602124,
+    0.4943903087073503,
+    0.24991738289179513
+  ],
+  "coef": [
+    0.6792641772866661,
+    -7.133507827567082,
+    0.9088633052380488,
+    12.870030704528151
+  ],
+  "intercept": 6.089093070496491,
+  "typical": {
+    "Reforestation": 0.5,
+    "Solar Energy": 4.0,
+    "Wind Energy": 8.0,
+    "Waste Reduction": 1.5,
+    "Clean Transport": 1.2,
+    "Energy Efficiency": 2.0,
+    "Urban Agriculture": 0.8
+  },
+  "metrics": {
+    "accuracy": 0.986,
+    "auc": 0.999
+  },
+  "model": "LogisticRegression (scikit-learn)"
+}
