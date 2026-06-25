@@ -34,6 +34,12 @@ const listingSchema = new mongoose.Schema({
     required: true,
     min: [1, 'Must list at least 1 credit'],
   },
+  originalCredits: { type: Number },          // credits at time of listing (escrowed)
+  soldCount: { type: Number, default: 0 },     // credits sold so far
+  sellerRating: {
+    avg: { type: Number, default: 0 },
+    count: { type: Number, default: 0 },
+  },
   co2Offset: {
     type: Number,
     required: true,

@@ -1,56 +1,104 @@
-import { ImageWithFallback } from './figma/ImageWithFallback'
-import { Button } from './ui/button'
+import { lazy, Suspense } from 'react'
+import { motion } from 'framer-motion'
 import { Card } from './ui/card'
-import { Leaf, ShieldCheck, Globe, TrendingUp, Users, Lock } from 'lucide-react'
+import GradientButton from './ui/GradientButton'
+import CountUp from './ui/CountUp'
+import { Leaf, ShieldCheck, Globe, TrendingUp, Users, Lock, ArrowRight } from 'lucide-react'
+import { useApp } from '../contexts/AppContext'
+
+// 3D scenes are heavy — load them only on the client, after the shell paints.
+const TreeScene = lazy(() => import('./three/Scene3D').then((m) => ({ default: m.TreeScene })))
+const SolarScene = lazy(() => import('./three/Scene3D').then((m) => ({ default: m.SolarScene })))
+const WindScene = lazy(() => import('./three/Scene3D').then((m) => ({ default: m.WindScene })))
+const DamScene = lazy(() => import('./three/Scene3D').then((m) => ({ default: m.DamScene })))
+const GlobeScene = lazy(() => import('./three/Scene3D').then((m) => ({ default: m.GlobeScene })))
+const Sustainability3DShowcase = lazy(() => import('./Sustainability3DShowcase'))
 
 interface AboutEcoCreditProps {
   onNavigate: (page: string) => void
 }
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.6, ease: 'easeOut' } }),
+}
+
 export default function AboutEcoCredit({ onNavigate }: AboutEcoCreditProps) {
+  const { state } = useApp()
+  const authed = state.isAuthenticated
+  // CTAs adapt to auth state
+  const primary = authed ? { label: 'Go to Dashboard', page: 'dashboard' } : { label: 'Get Started', page: 'register' }
+  const secondary = authed ? { label: 'Explore Marketplace', page: 'marketplace' } : { label: 'Sign In', page: 'login' }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f0fdf4] to-white">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 mb-6">
-            <Leaf className="w-12 h-12 text-[var(--teal)]" />
-            <h1 className="text-5xl font-bold text-[var(--teal)]">EcoCredit India</h1>
-          </div>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            A revolutionary blockchain-powered platform enabling Indians to combat climate change through verified green actions. Join India's sustainable future with certified carbon credit trading.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Button 
-              onClick={() => onNavigate('register')} 
-              className="bg-[var(--teal)] hover:bg-[var(--teal)]/90 px-8 py-6"
-            >
-              Get Started
-            </Button>
-            <Button 
-              onClick={() => onNavigate('login')} 
-              variant="outline" 
-              className="border-[var(--teal)] text-[var(--teal)] hover:bg-[var(--teal)]/10 px-8 py-6"
-            >
-              Sign In
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-mint/40 via-background to-background">
+      {/* ── Immersive 3D Hero ───────────────────────────── */}
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center">
+        {/* animated aurora orbs for depth */}
+        <div className="pointer-events-none absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full blur-3xl opacity-40 animate-float"
+          style={{ background: 'radial-gradient(circle, #A9CDBA, transparent 70%)' }} />
+        <div className="pointer-events-none absolute top-1/3 -right-24 h-[26rem] w-[26rem] rounded-full blur-3xl opacity-35 animate-float"
+          style={{ background: 'radial-gradient(circle, #E7D7C8, transparent 70%)', animationDelay: '2s' }} />
+        {/* 3D growing tree backdrop — fills the hero, framed so nothing clips */}
+        <Suspense fallback={null}>
+          <TreeScene fill className="absolute inset-0 h-full w-full opacity-95" />
+        </Suspense>
+        {/* soft vignette so text stays readable over the canvas */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 ring-grid opacity-30" />
+
+        <div className="relative max-w-6xl mx-auto text-center px-4 py-20">
+          <motion.h1 initial="hidden" animate="show" custom={1} variants={fadeUp}
+            className="text-5xl md:text-7xl font-bold tracking-tight text-gradient mb-6">
+            Grow a greener planet,<br />one credit at a time
+          </motion.h1>
+
+          <motion.p initial="hidden" animate="show" custom={2} variants={fadeUp}
+            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+            Turn real-world green actions into AI-verified, blockchain-backed carbon credits — then trade them in a transparent marketplace.
+          </motion.p>
+
+          <motion.div initial="hidden" animate="show" custom={3} variants={fadeUp}
+            className="flex gap-4 justify-center flex-wrap">
+            <GradientButton size="lg" onClick={() => onNavigate(primary.page)}>
+              {primary.label} <ArrowRight className="w-4 h-4" />
+            </GradientButton>
+            <GradientButton size="lg" variant="outline" onClick={() => onNavigate(secondary.page)}>
+              {secondary.label}
+            </GradientButton>
+          </motion.div>
         </div>
       </section>
 
-      {/* Hero Image */}
-      <section className="px-4 pb-12">
-        <div className="max-w-5xl mx-auto rounded-xl overflow-hidden shadow-2xl">
-          <ImageWithFallback
-            src="https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=1200&h=600&fit=crop"
-            alt="Sustainable environment"
-            className="w-full h-[400px] object-cover"
-          />
+      {/* ── Clean-energy trio: wind · solar · hydro (self-animating) ── */}
+      <section className="px-4 pt-24 pb-16">
+        <div className="max-w-5xl mx-auto text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-gradient">Clean energy, captured</h2>
+          <p className="text-muted-foreground mt-3">Wind, sun, and water — the three pillars of a regenerative grid.</p>
+        </div>
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 items-center">
+          {[
+            { Scene: WindScene, label: 'Wind' },
+            { Scene: SolarScene, label: 'Solar' },
+            { Scene: DamScene, label: 'Hydro' },
+          ].map(({ Scene, label }, i) => (
+            <motion.div key={label} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}>
+              <Suspense fallback={<div className="h-[380px]" />}>
+                <Scene className="w-full h-[380px]" interactive />
+              </Suspense>
+            </motion.div>
+          ))}
         </div>
       </section>
+
+      {/* ── Reel-style 3D sustainability showcase ───────── */}
+      <Suspense fallback={<div className="h-96" />}>
+        <Sustainability3DShowcase />
+      </Suspense>
 
       {/* What is EcoCredit */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-16 px-4 bg-background">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4 text-[var(--teal)]">What is EcoCredit?</h2>
           <p className="text-center text-lg text-muted-foreground max-w-3xl mx-auto mb-12">
@@ -58,41 +106,27 @@ export default function AboutEcoCredit({ onNavigate }: AboutEcoCreditProps) {
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="p-8 text-center border-2 hover:border-[var(--teal)] transition-colors">
-              <div className="w-16 h-16 bg-[var(--teal)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Leaf className="w-8 h-8 text-[var(--teal)]" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Submit Green Actions</h3>
-              <p className="text-muted-foreground">
-                Document your eco-friendly activities with geotagged photos and detailed descriptions. From planting trees to using renewable energy.
-              </p>
-            </Card>
-
-            <Card className="p-8 text-center border-2 hover:border-[var(--green)] transition-colors">
-              <div className="w-16 h-16 bg-[var(--green)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShieldCheck className="w-8 h-8 text-[var(--green)]" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">AI Verification</h3>
-              <p className="text-muted-foreground">
-                Our advanced AI system analyzes and verifies your submissions to ensure authenticity and calculate accurate carbon impact.
-              </p>
-            </Card>
-
-            <Card className="p-8 text-center border-2 hover:border-[var(--light-blue)] transition-colors">
-              <div className="w-16 h-16 bg-[var(--light-blue)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-8 h-8 text-[var(--light-blue)]" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Trade Credits</h3>
-              <p className="text-muted-foreground">
-                Earn eco-credits for verified actions and trade them in our marketplace. Turn your environmental impact into tangible value.
-              </p>
-            </Card>
+            {[
+              { Icon: Leaf, title: 'Submit Green Actions', body: 'Document your eco-friendly activities with geotagged photos and detailed descriptions. From planting trees to using renewable energy.' },
+              { Icon: ShieldCheck, title: 'AI Verification', body: 'Our advanced AI system analyzes and verifies your submissions to ensure authenticity and calculate accurate carbon impact.' },
+              { Icon: TrendingUp, title: 'Trade Credits', body: 'Earn eco-credits for verified actions and trade them in our marketplace. Turn your environmental impact into tangible value.' },
+            ].map(({ Icon, title, body }) => (
+              <motion.div key={title} whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
+                <Card className="p-8 text-center glass glow-sage h-full">
+                  <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icon className="w-8 h-8 text-pine" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-pine">{title}</h3>
+                  <p className="text-muted-foreground">{body}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-16 px-4 bg-gradient-to-b from-white to-[#f0fdf4]">
+      <section className="py-16 px-4 bg-gradient-to-b from-background to-mint/30">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-12 text-[var(--teal)]">How It Works</h2>
           
@@ -133,7 +167,7 @@ export default function AboutEcoCredit({ onNavigate }: AboutEcoCreditProps) {
       </section>
 
       {/* Key Features */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-16 px-4 bg-background">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-12 text-[var(--teal)]">Key Features</h2>
           
@@ -189,51 +223,45 @@ export default function AboutEcoCredit({ onNavigate }: AboutEcoCreditProps) {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 px-4 bg-[var(--teal)] text-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">50K+</div>
-              <p className="text-white/80">Active Users</p>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">2M+</div>
-              <p className="text-white/80">Green Actions</p>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">500K</div>
-              <p className="text-white/80">Tons CO₂ Offset</p>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">$10M+</div>
-              <p className="text-white/80">Credits Traded</p>
-            </div>
+      {/* Stats Section — animated count-up + 3D impact globe */}
+      <section className="relative py-20 px-4 bg-primary text-primary-foreground overflow-hidden">
+        <div className="absolute -right-10 top-0 h-full w-1/2 opacity-50 pointer-events-none hidden md:block">
+          <Suspense fallback={null}><GlobeScene className="h-full w-full" /></Suspense>
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our collective impact</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {[
+              { v: 50, suffix: 'K+', label: 'Active Users' },
+              { v: 2, suffix: 'M+', label: 'Green Actions' },
+              { v: 500, suffix: 'K', label: 'Tons CO₂ Offset' },
+              { v: 10, prefix: '$', suffix: 'M+', label: 'Credits Traded' },
+            ].map((s) => (
+              <div key={s.label}>
+                <div className="text-4xl md:text-5xl font-bold mb-2">
+                  <CountUp value={s.v} prefix={s.prefix} suffix={s.suffix} />
+                </div>
+                <p className="opacity-80">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-white to-[#f0fdf4]">
+      <section className="py-20 px-4 bg-gradient-to-b from-background to-mint/30">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4 text-[var(--teal)]">Ready to Make an Impact?</h2>
           <p className="text-lg text-muted-foreground mb-8">
             Join thousands of individuals and businesses making a real difference in the fight against climate change.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button 
-              onClick={() => onNavigate('register')} 
-              className="bg-[var(--teal)] hover:bg-[var(--teal)]/90 px-8 py-6"
-            >
-              Create Free Account
-            </Button>
-            <Button 
-              onClick={() => onNavigate('login')} 
-              variant="outline" 
-              className="border-[var(--teal)] text-[var(--teal)] hover:bg-[var(--teal)]/10 px-8 py-6"
-            >
-              Sign In
-            </Button>
+            <GradientButton size="lg" onClick={() => onNavigate(primary.page)}>
+              {authed ? primary.label : 'Create Free Account'} <ArrowRight className="w-4 h-4" />
+            </GradientButton>
+            <GradientButton size="lg" variant="outline" onClick={() => onNavigate(secondary.page)}>
+              {secondary.label}
+            </GradientButton>
           </div>
         </div>
       </section>

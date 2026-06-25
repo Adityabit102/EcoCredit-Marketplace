@@ -1,112 +1,123 @@
+@import "tailwindcss";
+
 @custom-variant dark (&:is(.dark *));
 
-/* Enhanced smooth scrolling for entire website - both up and down */
-html {
-  scroll-behavior: smooth;
-  /* Ensure smooth scrolling in all browsers */
-  -webkit-overflow-scrolling: touch;
-  scroll-padding-top: 0;
-}
+/* ── Scrolling ────────────────────────────────────────
+   Lenis drives smooth scroll in JS — native scroll-behavior:smooth
+   must NOT be set or the two fight and scrolling stutters. */
+html { font-size: var(--font-size); }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
 
-/* Apply smooth scrolling to body as well */
-body {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Ensure all scrollable elements have smooth behavior */
-* {
-  scroll-behavior: smooth;
-}
-
-/* Smooth scrolling for any custom scrollable containers */
-[style*="overflow: auto"],
-[style*="overflow: scroll"],
-[style*="overflow-y: auto"],
-[style*="overflow-y: scroll"] {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
+/* ════════════════════════════════════════════════════
+   EcoCredit brand palette (sage / mint / sand / pine)
+   Brand anchors + derived shades for UI legibility.
+   ════════════════════════════════════════════════════ */
 :root {
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: #333333;
+
+  /* brand anchors */
+  --mint: #CDEBD6;
+  --cream: #FDFBF6;
+  --sage: #A9CDBA;
+  --sand: #E7D7C8;
+  --pine: #3E5F55;
+  /* derived */
+  --pine-deep: #2C453E;
+  --pine-darker: #1C2D28;
+  --sage-deep: #6FA690;   /* darker sage — usable for text/buttons on light bg */
+  --sand-deep: #C9A98C;
+
+  /* semantic (light mode) */
+  --background: var(--cream);
+  --foreground: var(--pine-darker);
   --card: #ffffff;
-  --card-foreground: #333333;
+  --card-foreground: var(--pine-darker);
   --popover: #ffffff;
-  --popover-foreground: #333333;
-  --primary: #008080;
-  --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #333333;
-  --muted: #f5f5f5;
-  --muted-foreground: #717182;
-  --accent: #28a745;
-  --accent-foreground: #ffffff;
-  --destructive: #d4183d;
+  --popover-foreground: var(--pine-darker);
+  --primary: var(--pine);
+  --primary-foreground: var(--cream);
+  --secondary: var(--mint);
+  --secondary-foreground: var(--pine-deep);
+  --muted: #EDF5EF;
+  --muted-foreground: #5C7268;
+  --accent: var(--sage);
+  --accent-foreground: var(--pine-deep);
+  --destructive: #C2483E;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --border: rgba(62, 95, 85, 0.14);
   --input: transparent;
-  --input-background: #f5f5f5;
-  --switch-background: #cbced4;
+  --input-background: #F1F7F2;
+  --switch-background: #cbd5cf;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #008080;
-  --chart-1: #008080;
-  --chart-2: #28a745;
-  --chart-3: #00bfff;
-  --chart-4: #2d8f5f;
-  --chart-5: #0d9488;
-  --radius: 0.625rem;
-  --sidebar: #f5f5f5;
-  --sidebar-foreground: #333333;
-  --sidebar-primary: #008080;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f5f5;
-  --sidebar-accent-foreground: #333333;
-  --sidebar-border: rgba(0, 0, 0, 0.1);
-  --sidebar-ring: #008080;
-  --teal: #008080;
-  --green: #28a745;
-  --light-blue: #00bfff;
+  --ring: var(--sage-deep);
+
+  --chart-1: var(--pine);
+  --chart-2: var(--sage-deep);
+  --chart-3: var(--sand-deep);
+  --chart-4: #8FBBA8;
+  --chart-5: var(--pine-deep);
+  --radius: 0.75rem;
+
+  --sidebar: #F3F8F4;
+  --sidebar-foreground: var(--pine-darker);
+  --sidebar-primary: var(--pine);
+  --sidebar-primary-foreground: var(--cream);
+  --sidebar-accent: var(--mint);
+  --sidebar-accent-foreground: var(--pine-deep);
+  --sidebar-border: rgba(62, 95, 85, 0.12);
+  --sidebar-ring: var(--sage-deep);
+
+  /* legacy aliases used by existing components */
+  --teal: var(--pine);
+  --green: var(--sage-deep);
+  --light-blue: #8FBBA8;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: #16221E;
+  --foreground: var(--cream);
+  --card: #1F2F2A;
+  --card-foreground: var(--cream);
+  --popover: #1F2F2A;
+  --popover-foreground: var(--cream);
+  --primary: var(--sage);
+  --primary-foreground: var(--pine-darker);
+  --secondary: #2A3F39;
+  --secondary-foreground: var(--mint);
+  --muted: #243530;
+  --muted-foreground: #9DB5AC;
+  --accent: var(--pine);
+  --accent-foreground: var(--mint);
+  --destructive: #E06A5E;
+  --destructive-foreground: #1C2D28;
+  --border: rgba(205, 235, 214, 0.12);
+  --input: rgba(205, 235, 214, 0.08);
+  --input-background: #243530;
+  --ring: var(--sage);
+
+  --chart-1: var(--sage);
+  --chart-2: var(--mint);
+  --chart-3: var(--sand);
+  --chart-4: #8FBBA8;
+  --chart-5: var(--cream);
+
+  --sidebar: #1A2722;
+  --sidebar-foreground: var(--cream);
+  --sidebar-primary: var(--sage);
+  --sidebar-primary-foreground: var(--pine-darker);
+  --sidebar-accent: #2A3F39;
+  --sidebar-accent-foreground: var(--mint);
+  --sidebar-border: rgba(205, 235, 214, 0.10);
+  --sidebar-ring: var(--sage);
+
+  --teal: var(--sage);
+  --green: var(--sage);
+  --light-blue: var(--mint);
 }
 
 @theme inline {
@@ -136,10 +147,21 @@ body {
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  /* brand colors exposed as Tailwind utilities: bg-pine, text-sage, etc. */
+  --color-mint: var(--mint);
+  --color-cream: var(--cream);
+  --color-sage: var(--sage);
+  --color-sand: var(--sand);
+  --color-pine: var(--pine);
+  --color-pine-deep: var(--pine-deep);
+  --color-sage-deep: var(--sage-deep);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -151,97 +173,57 @@ body {
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground; }
 }
 
-/**
- * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
- */
+/* Base typography — skipped on elements with explicit Tailwind text classes */
 @layer base {
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
-    h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h3 {
-      font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h4 {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    p {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
-
-    label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
+    h1 { font-size: var(--text-2xl); font-weight: var(--font-weight-medium); line-height: 1.5; }
+    h2 { font-size: var(--text-xl); font-weight: var(--font-weight-medium); line-height: 1.5; }
+    h3 { font-size: var(--text-lg); font-weight: var(--font-weight-medium); line-height: 1.5; }
+    h4 { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+    p { font-size: var(--text-base); font-weight: var(--font-weight-normal); line-height: 1.5; }
+    label, button { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+    input { font-size: var(--text-base); font-weight: var(--font-weight-normal); line-height: 1.5; }
   }
 }
 
-html {
-  font-size: var(--font-size);
-}
+button, a, input, select, textarea { transition: color .25s, background-color .25s, border-color .25s, box-shadow .25s, transform .25s; }
 
-/* Smooth transitions for interactive elements */
-button, a, input, select, textarea {
-  transition: all 0.3s ease-in-out;
-}
-
-/* Smooth hover effects for cards and interactive elements */
-[class*="card"], [class*="Card"] {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Smooth fade-in animation for page loads */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+/* ════════════════════════════════════════════════════
+   Custom brand utilities & animations
+   ════════════════════════════════════════════════════ */
+@layer utilities {
+  .text-gradient {
+    background-image: linear-gradient(120deg, var(--pine), var(--sage-deep) 60%, var(--sand-deep));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .glass {
+    background: color-mix(in oklab, var(--card) 70%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
+  }
+  .glow-sage { box-shadow: 0 0 0 1px color-mix(in oklab, var(--sage) 40%, transparent), 0 18px 50px -12px color-mix(in oklab, var(--pine) 45%, transparent); }
+  .ring-grid {
+    background-image: radial-gradient(color-mix(in oklab, var(--sage) 40%, transparent) 1px, transparent 1px);
+    background-size: 22px 22px;
   }
 }
 
-/* Apply fade-in to main content areas */
-body > div {
-  animation: fadeIn 0.5s ease-out;
+/* Animated gradient background for carousel buttons */
+@keyframes gradient-pan { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes pulse-glow { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-gradient { background-size: 200% 200%; animation: gradient-pan 6s ease infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-pulse-glow, .animate-gradient { animation: none; }
+  html, body, * { scroll-behavior: auto; }
 }

@@ -14,7 +14,7 @@ export default function NotificationSystem() {
         return <AlertTriangle className="h-5 w-5 text-yellow-600" />
       case 'info':
       default:
-        return <Info className="h-5 w-5 text-blue-600" />
+        return <Info className="h-5 w-5 text-pine" />
     }
   }
 
@@ -28,18 +28,18 @@ export default function NotificationSystem() {
         return 'bg-yellow-50 border-yellow-200 text-yellow-800'
       case 'info':
       default:
-        return 'bg-blue-50 border-blue-200 text-blue-800'
+        return 'bg-card border-sage text-pine-deep'
     }
   }
 
   if (state.notifications.length === 0) return null
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+    <div className="fixed top-20 right-4 z-[60] space-y-2 max-w-sm">
       {state.notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`p-4 border rounded-lg shadow-lg ${getColors(notification.type)} animate-in slide-in-from-right duration-300`}
+          className={`p-4 border rounded-xl shadow-xl ${getColors(notification.type)} animate-in slide-in-from-right duration-300`}
         >
           <div className="flex items-start gap-3">
             {getIcon(notification.type)}

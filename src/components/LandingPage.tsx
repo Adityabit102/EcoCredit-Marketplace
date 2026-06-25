@@ -29,13 +29,13 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#008080] to-[#28a745] text-white py-24">
+      <section className="relative bg-gradient-to-br from-[#3E5F55] to-[#6FA690] text-white py-24">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold mb-6">
-                Turn Your Green Actions Into <span className="text-[#00bfff]">Digital Assets</span>
+                Turn Your Green Actions Into <span className="text-[#C9A98C]">Digital Assets</span>
               </h1>
               <p className="text-xl mb-8 opacity-90">
                 The first blockchain-powered marketplace where small businesses and individuals can 
@@ -45,7 +45,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 <Button 
                   size="lg" 
                   onClick={() => onNavigate('submit')}
-                  className="bg-white text-[#008080] hover:bg-gray-100"
+                  className="bg-white text-[#3E5F55] hover:bg-gray-100"
                 >
                   <Upload className="h-5 w-5 mr-2" />
                   Get Started
@@ -53,7 +53,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 <Button 
                   size="lg" 
                   onClick={() => onNavigate('marketplace')}
-                  className="bg-white text-[#008080] hover:bg-gray-100"
+                  className="bg-white text-[#3E5F55] hover:bg-gray-100"
                 >
                   <TrendingUp className="h-5 w-5 mr-2" />
                   View Marketplace
@@ -75,7 +75,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
       <section className="py-20 bg-[#f5f5f5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-[#333333]">How EcoCredit Works</h2>
+            <h2 className="text-4xl font-bold mb-4 text-[#2C453E]">How EcoCredit Works</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Three simple steps to turn your environmental actions into verified carbon credits
             </p>
@@ -85,13 +85,13 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             {steps.map((step, index) => (
               <Card key={index} className="text-center p-8 hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <div className="inline-flex p-4 bg-[#008080]/10 rounded-full mb-6">
-                    <step.icon className="h-8 w-8 text-[#008080]" />
+                  <div className="inline-flex p-4 bg-[#3E5F55]/10 rounded-full mb-6">
+                    <step.icon className="h-8 w-8 text-[#3E5F55]" />
                   </div>
-                  <div className="text-2xl font-bold mb-2 text-[#008080]">
+                  <div className="text-2xl font-bold mb-2 text-[#3E5F55]">
                     {String(index + 1).padStart(2, '0')}
                   </div>
-                  <h3 className="text-xl font-semibold mb-4 text-[#333333]">{step.title}</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-[#2C453E]">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </CardContent>
               </Card>
@@ -105,19 +105,19 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-[#008080] mb-2">12,567</div>
+              <div className="text-4xl font-bold text-[#3E5F55] mb-2">12,567</div>
               <div className="text-gray-600">Credits Traded</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#28a745] mb-2">8,234</div>
+              <div className="text-4xl font-bold text-[#6FA690] mb-2">8,234</div>
               <div className="text-gray-600">Tons CO₂ Offset</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#00bfff] mb-2">3,891</div>
+              <div className="text-4xl font-bold text-[#C9A98C] mb-2">3,891</div>
               <div className="text-gray-600">Verified Actions</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#008080] mb-2">1,456</div>
+              <div className="text-4xl font-bold text-[#3E5F55] mb-2">1,456</div>
               <div className="text-gray-600">Active Users</div>
             </div>
           </div>
@@ -125,9 +125,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-[#008080] text-white">
+      <section className="py-20 bg-[#3E5F55] text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <Leaf className="h-16 w-16 mx-auto mb-6 text-[#00bfff]" />
+          <Leaf className="h-16 w-16 mx-auto mb-6 text-[#C9A98C]" />
           <h2 className="text-4xl font-bold mb-6">Ready to Make an Impact?</h2>
           <p className="text-xl mb-8 opacity-90">
             Join thousands of businesses and individuals who are already earning rewards for their environmental actions.
@@ -135,7 +135,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           <Button 
             size="lg" 
             onClick={() => onNavigate('submit')}
-            className="bg-[#28a745] hover:bg-[#28a745]/90 text-white"
+            className="bg-[#6FA690] hover:bg-[#6FA690]/90 text-white"
           >
             Submit Your First Action
           </Button>

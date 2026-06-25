@@ -1,0 +1,12 @@
+{
+  "name": "EcoCredit India",
+  "short_name": "EcoCredit",
+  "description": "AI-verified, blockchain-backed carbon credits marketplace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDFBF6",
+  "theme_color": "#3E5F55",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -17,9 +17,10 @@ const transactionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['earned', 'bought', 'sold'],
+    enum: ['earned', 'bought', 'sold', 'retired'],
     required: true,
   },
+  proofId: { type: String, index: true, sparse: true }, // public retirement proof id
   credits: {
     type: Number,
     required: true,

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '../contexts/AppContext'
 import { api } from '../services/api'
+import { uploadImage } from '../services/upload'
 import { blockchainService } from '../services/blockchainService'
 
 export default function SubmitAction() {
@@ -29,6 +30,7 @@ export default function SubmitAction() {
   const [location, setLocation] = useState("")
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [co2Estimate, setCo2Estimate] = useState("")
+  const [aiSuggestion, setAiSuggestion] = useState<{ type: string; confidence: number } | null>(null)
   const [loading, setLoading] = useState(false)
   const [walletAddress, setWalletAddress] = useState<string>("")
   const [aiResult, setAiResult] = useState<{
@@ -85,25 +87,26 @@ export default function SubmitAction() {
       }
 
       setIsUploading(true)
-      setUploadProgress(0)
+      setUploadProgress(40)
       setImageFile(file)
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // Simulate upload progress quickly
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 20;
-          setUploadProgress(progress);
-          if (progress >= 100) {
-            clearInterval(interval);
-            setIsUploading(false);
-            setSelectedImage(reader.result as string);
-            dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: 'Image uploaded successfully!' }})
-          }
-        }, 100);
-      };
-      reader.readAsDataURL(file);
+
+      // uploads to Cloudinary when configured, else returns a base64 data URL
+      uploadImage(file)
+        .then(async (url) => {
+          setUploadProgress(100)
+          setSelectedImage(url)
+          dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: 'Image uploaded successfully!' } })
+          // ask the local ML classifier to suggest the action type (no-op until a model is trained)
+          try {
+            const r = await api.ai.classify(url)
+            if (r.available && r.confidence >= 40) {
+              setAiSuggestion({ type: r.type, confidence: r.confidence })
+              if (!actionType) setActionType(r.type)
+            }
+          } catch { /* classifier optional */ }
+        })
+        .catch(() => dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: 'Image upload failed' } }))
+        .finally(() => setIsUploading(false))
     }
   }
 
@@ -260,16 +263,16 @@ export default function SubmitAction() {
         <Card className="text-center p-12">
           <CardContent>
             <div className={`inline-flex p-4 rounded-full mb-6 ${
-              aiResult.verified ? 'bg-[#28a745]/10' : 'bg-[#ffc107]/10'
+              aiResult.verified ? 'bg-[#6FA690]/10' : 'bg-[#ffc107]/10'
             }`}>
               {aiResult.verified ? (
-                <CheckCircle className="h-12 w-12 text-[#28a745]" />
+                <CheckCircle className="h-12 w-12 text-[#6FA690]" />
               ) : (
                 <Clock className="h-12 w-12 text-[#ffc107]" />
               )}
             </div>
             
-            <h2 className="text-3xl font-bold mb-4 text-[#333333]">
+            <h2 className="text-3xl font-bold mb-4 text-[#2C453E]">
               {aiResult.verified ? 'Action Verified!' : 'Under Review'}
             </h2>
             
@@ -282,11 +285,11 @@ export default function SubmitAction() {
                 </div>
                 <div>
                   <span className="text-gray-600">Credits Earned:</span>
-                  <div className="font-semibold text-[#008080]">{aiResult.creditScore}</div>
+                  <div className="font-semibold text-[#3E5F55]">{aiResult.creditScore}</div>
                 </div>
                 <div>
                   <span className="text-gray-600">CO₂ Offset:</span>
-                  <div className="font-semibold text-[#28a745]">{co2Estimate}t</div>
+                  <div className="font-semibold text-[#6FA690]">{co2Estimate}t</div>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t">
@@ -297,7 +300,7 @@ export default function SubmitAction() {
             <div className="flex gap-4 justify-center">
               <Button 
                 onClick={() => dispatch({ type: 'SET_PAGE', payload: 'dashboard' })}
-                className="bg-[#008080] hover:bg-[#008080]/90"
+                className="bg-[#3E5F55] hover:bg-[#3E5F55]/90"
               >
                 View Dashboard
               </Button>
@@ -317,19 +320,19 @@ export default function SubmitAction() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-[#333333]">Submit Green Action</h1>
+        <h1 className="text-4xl font-bold mb-4 text-[#2C453E]">Submit Green Action</h1>
         <p className="text-lg text-gray-600">
           Upload a geotagged photo of your environmental action to earn verified EcoCredits
         </p>
         
         {/* Wallet Connection */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+        <div className="mt-6 p-4 bg-secondary/50 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Shield className="h-5 w-5 text-blue-600" />
+              <Shield className="h-5 w-5 text-pine" />
               <div>
-                <h3 className="font-semibold text-blue-900">Blockchain Verification</h3>
-                <p className="text-sm text-blue-700">
+                <h3 className="font-semibold text-pine-deep">Blockchain Verification</h3>
+                <p className="text-sm text-pine">
                   {walletAddress ? 'Wallet connected - your credits will be securely stored' : 'Connect your wallet for blockchain verification'}
                 </p>
               </div>
@@ -338,7 +341,7 @@ export default function SubmitAction() {
               <Button 
                 onClick={connectWallet} 
                 disabled={loading}
-                style={{ backgroundColor: '#1c398e' }}
+                style={{ backgroundColor: '#3E5F55' }}
                 className="hover:opacity-90 transition-opacity"
               >
                 {loading ? 'Connecting...' : 'Connect Wallet'}
@@ -347,7 +350,7 @@ export default function SubmitAction() {
               <div className="flex items-center gap-2">
                 <div className="text-sm">
                   <span className="text-green-600">✓ Connected:</span>
-                  <p className="font-mono text-xs">{walletAddress.substring(0, 6)}...{walletAddress.substring(-4)}</p>
+                  <p className="font-mono text-xs">{walletAddress.substring(0, 6)}...{walletAddress.slice(-4)}</p>
                 </div>
                 <Button
                   onClick={disconnectWallet}
@@ -368,7 +371,7 @@ export default function SubmitAction() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5 text-[#008080]" />
+              <Camera className="h-5 w-5 text-[#3E5F55]" />
               Upload Action Photo
             </CardTitle>
           </CardHeader>
@@ -441,7 +444,7 @@ export default function SubmitAction() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Leaf className="h-5 w-5 text-[#28a745]" />
+              <Leaf className="h-5 w-5 text-[#6FA690]" />
               Action Details
             </CardTitle>
           </CardHeader>
@@ -466,6 +469,11 @@ export default function SubmitAction() {
                   ))}
                 </SelectContent>
               </Select>
+              {aiSuggestion && (
+                <p className="text-xs text-[#6FA690] flex items-center gap-1">
+                  ✨ AI suggests <span className="font-semibold">{aiSuggestion.type}</span> ({aiSuggestion.confidence}% confident)
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -549,7 +557,7 @@ export default function SubmitAction() {
             <Button 
               onClick={handleSubmit}
               disabled={loading || !selectedImage || !actionType || !description}
-              className="w-full bg-[#008080] hover:bg-[#008080]/90 py-6"
+              className="w-full bg-[#3E5F55] hover:bg-[#3E5F55]/90 py-6"
             >
               {loading ? (
                 <div className="flex items-center gap-2">

@@ -1,27 +1,45 @@
+import { useEffect, useState } from "react"
 import { AppProvider, useApp } from "./contexts/AppContext"
-import { ReactLenis } from '@studio-freight/react-lenis'
 import { AnimatePresence, motion } from 'framer-motion'
 import Navigation from "./components/Navigation"
 import AboutEcoCredit from "./components/AboutEcoCredit"
 import Login from "./components/Login"
 import Register from "./components/Register"
-import LandingPage from "./components/LandingPage"
 import SubmitAction from "./components/SubmitAction"
 import Marketplace from "./components/Marketplace"
 import Dashboard from "./components/Dashboard"
 import ImpactTracking from "./components/ImpactTracking"
+import Leaderboard from "./components/Leaderboard"
+import Favorites from "./components/Favorites"
+import Rewards from "./components/Rewards"
+import Admin from "./components/Admin"
+import Calculator from "./components/Calculator"
+import PublicProfile from "./components/PublicProfile"
+import ProofPage from "./components/ProofPage"
+import ResetPassword from "./components/ResetPassword"
+import NotFound from "./components/NotFound"
+import EcoBot from "./components/EcoBot"
 import Footer from "./components/Footer"
 import NotificationSystem from "./components/NotificationSystem"
 
+const KNOWN_PAGES = ['about', 'login', 'register', 'home', 'submit', 'marketplace', 'dashboard', 'impact', 'leaderboard', 'favorites', 'rewards', 'calculator', 'admin']
+
 function AppContent() {
   const { state, dispatch } = useApp()
+  const [reset, setReset] = useState<{ token: string; email: string } | null>(null)
 
-  // Smooth scroll is handled by ReactLenis, but we can keep standard effect if needed.
-  // We'll reset scroll to top using AnimatePresence onExitComplete instead.
+  // Handle deep links: password reset and shared proof links.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    if (p.get('reset') && p.get('email')) setReset({ token: p.get('reset')!, email: p.get('email')! })
+    if (p.get('proof')) dispatch({ type: 'SET_PAGE', payload: `proof:${p.get('proof')}` })
+    if (p.get('reset') || p.get('proof')) window.history.replaceState({}, '', window.location.pathname)
+  }, [dispatch])
 
   const handleNavigate = (page: string) => {
     dispatch({ type: 'SET_PAGE', payload: page })
   }
+  const back = () => handleNavigate(state.isAuthenticated ? 'home' : 'about')
 
   const handleLogin = (user: any) => {
     dispatch({ type: 'LOGIN', payload: user })
@@ -39,6 +57,10 @@ function AppContent() {
   }
 
   const renderCurrentPage = () => {
+    // Public deep-link pages (work logged in or out)
+    if (state.currentPage.startsWith('proof:')) return <ProofPage proofId={state.currentPage.slice(6)} onBack={back} />
+    if (state.currentPage.startsWith('profile:')) return <PublicProfile userId={state.currentPage.slice(8)} onBack={back} />
+
     // Pre-login pages
     if (!state.isAuthenticated) {
       switch (state.currentPage) {
@@ -56,7 +78,7 @@ function AppContent() {
     // Post-login pages
     switch (state.currentPage) {
       case 'home':
-        return <LandingPage onNavigate={handleNavigate} />
+        return <AboutEcoCredit onNavigate={handleNavigate} />
       case 'submit':
         return <SubmitAction />
       case 'marketplace':
@@ -65,21 +87,41 @@ function AppContent() {
         return <Dashboard />
       case 'impact':
         return <ImpactTracking />
+      case 'leaderboard':
+        return <Leaderboard />
+      case 'favorites':
+        return <Favorites />
+      case 'rewards':
+        return <Rewards />
+      case 'calculator':
+        return <Calculator />
+      case 'admin':
+        return <Admin />
       default:
-        return <LandingPage onNavigate={handleNavigate} />
+        return KNOWN_PAGES.includes(state.currentPage)
+          ? <AboutEcoCredit onNavigate={handleNavigate} />
+          : <NotFound onHome={() => handleNavigate('home')} />
     }
   }
 
+  // password reset deep-link takes over the screen
+  if (reset) return <ResetPassword token={reset.token} email={reset.email} onDone={() => { setReset(null); handleNavigate('login') }} />
+
+  // login/signup have their own full-screen branded layout — no global header there
+  const hideChrome = !state.isAuthenticated && (state.currentPage === 'login' || state.currentPage === 'register')
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navigation 
-        currentPage={state.currentPage} 
-        onNavigate={handleNavigate}
-        isAuthenticated={state.isAuthenticated}
-        userEmail={state.user?.email}
-        userRole={state.user?.role}
-        onLogout={handleLogout}
-      />
+      {!hideChrome && (
+        <Navigation
+          currentPage={state.currentPage}
+          onNavigate={handleNavigate}
+          isAuthenticated={state.isAuthenticated}
+          userEmail={state.user?.email}
+          userRole={state.user?.role}
+          onLogout={handleLogout}
+        />
+      )}
       <main className="min-h-screen">
         <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo(0, 0)}>
           <motion.div
@@ -94,6 +136,7 @@ function AppContent() {
         </AnimatePresence>
       </main>
       {state.isAuthenticated && <Footer onNavigate={handleNavigate} />}
+      {state.isAuthenticated && <EcoBot />}
       <NotificationSystem />
     </div>
   )
@@ -101,10 +144,8 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ReactLenis root>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
-    </ReactLenis>
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
   )
 }

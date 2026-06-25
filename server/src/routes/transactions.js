@@ -8,8 +8,11 @@ const purchaseSchema = z.object({
   listingId: z.string().min(1),
   credits: z.number().int().positive(),
 });
+const retireSchema = z.object({ credits: z.number().int().positive() });
 
 router.get('/', auth, ctrl.list);
 router.post('/purchase', auth, validate(purchaseSchema), ctrl.purchase);
+router.post('/retire', auth, validate(retireSchema), ctrl.retire);
+router.get('/proof/:proofId', ctrl.proof); // public verification
 
 module.exports = router;

@@ -1,5 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
+import { motion } from 'framer-motion'
+import GradientButton from './ui/GradientButton'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+
+const TreeScene = lazy(() => import('./three/Scene3D').then((m) => ({ default: m.TreeScene })))
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
@@ -35,6 +39,19 @@ export default function Dashboard() {
   const [listingPrice, setListingPrice] = useState<number>(0)
   const [isListingInProgress, setIsListingInProgress] = useState(false)
   const [listingSuccess, setListingSuccess] = useState(false)
+
+  // Gamified ledger stats from the hardened backend (level/xp/streak/badges/balance)
+  const [eco, setEco] = useState<any>(null)
+  useEffect(() => {
+    api.users.dashboard().then((d) => setEco(d.stats)).catch(() => {})
+  }, [])
+  const lifetimeCredits = eco?.lifetimeCredits ?? 0
+  const treeProgress = Math.min(1, Math.max(0.08, lifetimeCredits / 500))
+  const xp = eco?.xp ?? 0
+  const level = eco?.level ?? 1
+  const xpIntoLevel = xp - Math.pow(level - 1, 2) * 100
+  const xpForNext = Math.pow(level, 2) * 100 - Math.pow(level - 1, 2) * 100
+  const downloadCertificate = () => window.open(api.certificates.downloadUrl(), '_blank')
 
   // Calculate stats from real data
   const stats = useMemo(() => {
@@ -332,7 +349,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
-          <h1 className="text-4xl font-bold mb-2 text-[#333333]">Carbon Credit Dashboard</h1>
+          <h1 className="text-4xl font-bold mb-2 text-[#2C453E]">Carbon Credit Dashboard</h1>
           <p className="text-lg text-gray-600">Track your environmental impact and green investments in India</p>
         </div>
         <div className="flex gap-2 mt-4 md:mt-0">
@@ -343,6 +360,68 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* ── 3D Impact Hero: your forest grows with lifetime credits ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+        className="relative mb-8 rounded-3xl overflow-hidden glass glow-sage grid md:grid-cols-2"
+      >
+        <div className="relative min-h-[300px]">
+          <Suspense fallback={<div className="h-full min-h-[300px]" />}>
+            <TreeScene className="absolute inset-0 h-full w-full" progress={treeProgress} />
+          </Suspense>
+          <div className="absolute bottom-3 left-4 text-xs text-muted-foreground">
+            Your forest grows as you earn credits 🌱
+          </div>
+        </div>
+
+        <div className="p-8 flex flex-col justify-center gap-5">
+          <div>
+            <p className="text-sm text-muted-foreground">Welcome back{state.user?.name ? `, ${state.user.name}` : ''}</p>
+            <h2 className="text-3xl font-bold text-gradient">Level {level} Eco-Champion</h2>
+          </div>
+
+          {/* XP progress */}
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-muted-foreground">XP</span>
+              <span className="font-medium text-pine">{Math.max(0, xpIntoLevel)} / {xpForNext}</span>
+            </div>
+            <div className="h-3 rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full animate-gradient"
+                style={{ width: `${Math.min(100, (xpIntoLevel / xpForNext) * 100)}%`, backgroundImage: 'linear-gradient(110deg,#3E5F55,#6FA690,#A9CDBA)' }} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-xl bg-secondary/60 p-3">
+              <div className="text-2xl font-bold text-pine">{(eco?.totalCO2 ?? 0).toFixed(1)}</div>
+              <div className="text-xs text-muted-foreground">tons CO₂</div>
+            </div>
+            <div className="rounded-xl bg-secondary/60 p-3">
+              <div className="text-2xl font-bold text-pine">{eco?.creditBalance ?? 0}</div>
+              <div className="text-xs text-muted-foreground">credits</div>
+            </div>
+            <div className="rounded-xl bg-secondary/60 p-3">
+              <div className="text-2xl font-bold text-pine">🔥 {eco?.streak?.current ?? 0}</div>
+              <div className="text-xs text-muted-foreground">day streak</div>
+            </div>
+          </div>
+
+          {/* badges */}
+          {eco?.badges?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {eco.badges.map((b: string) => (
+                <span key={b} className="rounded-full bg-sand/60 text-pine-deep px-3 py-1 text-xs font-medium">🏅 {b}</span>
+              ))}
+            </div>
+          )}
+
+          <GradientButton onClick={downloadCertificate} className="self-start">
+            <Download className="h-4 w-4" /> Download Offset Certificate
+          </GradientButton>
+        </div>
+      </motion.div>
+
       {/* Stats Cards */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <Card>
@@ -350,7 +429,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">EcoCredits Portfolio</p>
-                <p className="text-3xl font-bold text-[#008080]">{stats.totalCredits}</p>
+                <p className="text-3xl font-bold text-[#3E5F55]">{stats.totalCredits}</p>
                 <div className="flex items-center gap-1 mt-1">
                   {stats.monthlyGrowth >= 0 ? (
                     <ArrowUpRight className="h-4 w-4 text-green-600" />
@@ -362,8 +441,8 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-[#008080]/10 rounded-full">
-                <Coins className="h-8 w-8 text-[#008080]" />
+              <div className="p-3 bg-[#3E5F55]/10 rounded-full">
+                <Coins className="h-8 w-8 text-[#3E5F55]" />
               </div>
             </div>
           </CardContent>
@@ -374,7 +453,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">CO₂ Offset (tons)</p>
-                <p className="text-3xl font-bold text-[#28a745]">{stats.totalCO2.toFixed(1)}</p>
+                <p className="text-3xl font-bold text-[#6FA690]">{stats.totalCO2.toFixed(1)}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <ArrowUpRight className="h-4 w-4 text-green-600" />
                   <span className="text-sm text-green-600">
@@ -382,8 +461,8 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-[#28a745]/10 rounded-full">
-                <Leaf className="h-8 w-8 text-[#28a745]" />
+              <div className="p-3 bg-[#6FA690]/10 rounded-full">
+                <Leaf className="h-8 w-8 text-[#6FA690]" />
               </div>
             </div>
           </CardContent>
@@ -394,7 +473,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Green Impact Revenue</p>
-                <p className="text-3xl font-bold text-[#00bfff]">
+                <p className="text-3xl font-bold text-[#C9A98C]">
                   {formatIndianCurrency(stats.netProfit)}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
@@ -408,8 +487,8 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-[#00bfff]/10 rounded-full">
-                <TrendingUp className="h-8 w-8 text-[#00bfff]" />
+              <div className="p-3 bg-[#C9A98C]/10 rounded-full">
+                <TrendingUp className="h-8 w-8 text-[#C9A98C]" />
               </div>
             </div>
           </CardContent>
@@ -420,7 +499,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Verified Green Actions</p>
-                <p className="text-3xl font-bold text-[#008080]">{state.actions.length}</p>
+                <p className="text-3xl font-bold text-[#3E5F55]">{state.actions.length}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <ArrowUpRight className="h-4 w-4 text-green-600" />
                   <span className="text-sm text-green-600">
@@ -428,8 +507,8 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-[#008080]/10 rounded-full">
-                <Award className="h-8 w-8 text-[#008080]" />
+              <div className="p-3 bg-[#3E5F55]/10 rounded-full">
+                <Award className="h-8 w-8 text-[#3E5F55]" />
               </div>
             </div>
           </CardContent>
@@ -441,7 +520,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-[#008080]" />
+              <TrendingUp className="h-5 w-5 text-[#3E5F55]" />
               Environmental Impact Analytics
             </CardTitle>
           </CardHeader>
@@ -459,7 +538,7 @@ export default function Dashboard() {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Area type="monotone" dataKey="credits" stroke="#008080" fill="#008080" fillOpacity={0.3} />
+                    <Area type="monotone" dataKey="credits" stroke="#3E5F55" fill="#3E5F55" fillOpacity={0.3} />
                   </AreaChart>
                 </ResponsiveContainer>
               </TabsContent>
@@ -470,7 +549,7 @@ export default function Dashboard() {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Line type="monotone" dataKey="co2" stroke="#28a745" strokeWidth={3} />
+                    <Line type="monotone" dataKey="co2" stroke="#6FA690" strokeWidth={3} />
                   </LineChart>
                 </ResponsiveContainer>
               </TabsContent>
@@ -481,7 +560,7 @@ export default function Dashboard() {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip formatter={(value: number) => [`₹${(value * 83).toFixed(0)}`, 'Revenue']} />
-                    <Area type="monotone" dataKey="revenue" stroke="#00bfff" fill="#00bfff" fillOpacity={0.3} />
+                    <Area type="monotone" dataKey="revenue" stroke="#C9A98C" fill="#C9A98C" fillOpacity={0.3} />
                   </AreaChart>
                 </ResponsiveContainer>
               </TabsContent>
@@ -492,7 +571,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Leaf className="h-5 w-5 text-[#28a745]" />
+              <Leaf className="h-5 w-5 text-[#6FA690]" />
               Sustainability Projects
             </CardTitle>
           </CardHeader>
@@ -535,13 +614,13 @@ export default function Dashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-[#008080]" />
+              <Wallet className="h-5 w-5 text-[#3E5F55]" />
               Your Carbon Credits (Blockchain)
             </CardTitle>
             {!walletAddress ? (
               <Button
                 onClick={handleConnectWallet}
-                style={{ backgroundColor: '#1c398e' }}
+                style={{ backgroundColor: '#3E5F55' }}
                 className="hover:opacity-90"
               >
                 <Wallet className="h-4 w-4 mr-2" />
@@ -593,7 +672,7 @@ export default function Dashboard() {
                       <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                         <div>
                           <span className="text-gray-600">Credits:</span>
-                          <div className="font-semibold text-[#008080]">{action.credits}</div>
+                          <div className="font-semibold text-[#3E5F55]">{action.credits}</div>
                         </div>
                         <div>
                           <span className="text-gray-600">CO₂ Offset:</span>
@@ -609,7 +688,7 @@ export default function Dashboard() {
                         {state.user?.role === 'seller' && (
                           <Button
                             onClick={() => handleListOnMarketplace(action)}
-                            className="w-full text-xs bg-[#008080] hover:bg-[#008080]/90"
+                            className="w-full text-xs bg-[#3E5F55] hover:bg-[#3E5F55]/90"
                             size="sm"
                           >
                             <ShoppingCart className="h-4 w-4 mr-2" />
@@ -640,7 +719,7 @@ export default function Dashboard() {
               {/* Blockchain Info */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
                 <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-[#008080] mt-1" />
+                  <Shield className="h-5 w-5 text-[#3E5F55] mt-1" />
                   <div className="flex-1">
                     <h4 className="font-medium text-sm mb-1">Blockchain Security</h4>
                     <p className="text-xs text-gray-600 mb-2">
@@ -650,7 +729,7 @@ export default function Dashboard() {
                       href={blockchainService.getContractLink()}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-[#008080] hover:underline flex items-center gap-1"
+                      className="text-xs text-[#3E5F55] hover:underline flex items-center gap-1"
                     >
                       View Smart Contract
                       <ExternalLink className="h-3 w-3" />
@@ -668,7 +747,7 @@ export default function Dashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-[#008080]" />
+              <Calendar className="h-5 w-5 text-[#3E5F55]" />
               Recent Green Transactions
             </CardTitle>
             <Button variant="outline" size="sm" onClick={handleViewAllTransactions}>
@@ -684,23 +763,23 @@ export default function Dashboard() {
                 {/* Icon */}
                 <div className={`flex-shrink-0 p-2 rounded-full ${
                   transaction.type === 'earned' ? 'bg-green-100' :
-                  transaction.type === 'sold' ? 'bg-blue-100' : 'bg-yellow-100'
+                  transaction.type === 'sold' ? 'bg-secondary' : 'bg-yellow-100'
                 }`}>
                   {transaction.type === 'earned' && <Award className="h-5 w-5 text-green-600" />}
-                  {transaction.type === 'sold' && <TrendingUp className="h-5 w-5 text-blue-600" />}
+                  {transaction.type === 'sold' && <TrendingUp className="h-5 w-5 text-pine" />}
                   {transaction.type === 'bought' && <ArrowDownRight className="h-5 w-5 text-yellow-600" />}
                 </div>
                 
                 {/* Description - Flex grow to take available space */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium capitalize text-[#333333]">{transaction.type}</p>
+                  <p className="font-medium capitalize text-[#2C453E]">{transaction.type}</p>
                   <p className="text-sm text-gray-600 truncate">{transaction.description}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{transaction.location}</p>
                 </div>
                 
                 {/* Credits & Amount - Fixed width for alignment */}
                 <div className="flex-shrink-0 text-right min-w-[140px]">
-                  <p className="font-semibold text-[#333333]">{transaction.credits} credits</p>
+                  <p className="font-semibold text-[#2C453E]">{transaction.credits} credits</p>
                   {transaction.amount && (
                     <p className={`text-sm font-medium ${transaction.type === 'sold' ? 'text-green-600' : 'text-red-600'}`}>
                       {transaction.type === 'sold' ? '+' : '-'}{formatIndianCurrency(transaction.amount)}
@@ -713,7 +792,7 @@ export default function Dashboard() {
                 <div className="flex-shrink-0 min-w-[110px] flex justify-end">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                     transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
-                    transaction.status === 'verified' ? 'bg-blue-100 text-blue-800' :
+                    transaction.status === 'verified' ? 'bg-secondary text-pine-deep' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
                     {transaction.status}
@@ -833,7 +912,7 @@ export default function Dashboard() {
               <Button 
                 onClick={confirmTransfer}
                 disabled={isTransferring || !transferAddress || !transferAddress.startsWith('0x')}
-                className="bg-[#008080] hover:bg-[#008080]/90"
+                className="bg-[#3E5F55] hover:bg-[#3E5F55]/90"
               >
                 {isTransferring ? (
                   <>
@@ -918,7 +997,7 @@ export default function Dashboard() {
                 <Button 
                   onClick={confirmListing} 
                   disabled={!listingPrice || listingPrice <= 0 || isListingInProgress}
-                  className="bg-[#008080] hover:bg-[#008080]/90"
+                  className="bg-[#3E5F55] hover:bg-[#3E5F55]/90"
                 >
                   {isListingInProgress ? 'Listing...' : 'Create Listing'}
                 </Button>

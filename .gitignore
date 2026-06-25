@@ -48,3 +48,10 @@ coverage/
 
 # Vercel
 .vercel/
+
+# ML artifacts (train locally; large)
+ml/dataset/
+ml/saved_model/
+ml/venv/
+ml/labels.json
+server/ml-model/

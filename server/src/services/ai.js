@@ -1,123 +1,118 @@
 const OpenAI = require('openai');
 const env = require('../config/env');
+const logger = require('../config/logger');
 
 let client = null;
 
 function getClient() {
-  if (!client) {
-    if (env.groqKey) {
-      client = new OpenAI({ 
-        apiKey: env.groqKey,
-        baseURL: 'https://api.groq.com/openai/v1'
-      });
-      client.isGroq = true;
-    } else if (env.openaiKey) {
-      client = new OpenAI({ apiKey: env.openaiKey });
-    }
+  if (client) return client;
+  if (env.groqKey) {
+    client = new OpenAI({ apiKey: env.groqKey, baseURL: 'https://api.groq.com/openai/v1' });
+    client.isGroq = true;
+  } else if (env.openaiKey) {
+    client = new OpenAI({ apiKey: env.openaiKey });
+    client.isGroq = false;
   }
   return client;
 }
 
-async function verifyAction({ type, description, date, co2Estimate, hasGeotag, imageUrl }) {
-  const ai = getClient();
+// Realistic per-unit CO2 sanity ceilings (tons) to catch absurd claims even when AI is down.
+const CO2_SANITY = {
+  Reforestation: 5, 'Clean Transport': 2, 'Solar Energy': 50, 'Wind Energy': 100,
+  'Waste Reduction': 5, 'Energy Efficiency': 20, 'Urban Agriculture': 3,
+};
 
-  if (!ai) {
-    // fallback if no API key configured
-    return fallbackVerify(type, co2Estimate, hasGeotag);
-  }
-
-  const promptText = `You are an expert environmental auditor AI. A user has submitted a green action for EcoCredits.
-Verify the following claim for fraud or unrealistic numbers:
+function buildPrompt({ type, description, date, co2Estimate, hasGeotag }) {
+  return `You are an expert environmental auditor AI verifying a green action for carbon credits.
 Type: ${type}
 Description: ${description}
 Date: ${date}
 CO2 Estimate Claimed: ${co2Estimate} tons
 Geotag Provided: ${hasGeotag ? 'Yes' : 'No'}
 
-Instructions:
-1. Check if the CO2 Estimate is realistic for the described action (e.g., planting 1 tree does NOT offset 1000 tons of CO2. A typical tree offsets ~0.02 tons/year).
-2. If an image is provided, verify if the image matches the description.
-3. Assess the overall credibility.
+Rules:
+1. Judge whether the CO2 estimate is realistic for the action (e.g. one tree offsets ~0.02 t/yr; a household solar install ~3-5 t/yr). Flag wildly inflated claims.
+2. If an image is supplied, confirm it matches the description.
+3. Assess overall credibility and possible fraud.
 
-You MUST respond in valid JSON format matching this structure:
-{
-  "verified": boolean, 
-  "creditScore": number (0-100, where <50 is unverified/fraud), 
-  "message": "short explanation of your finding"
-}`;
+Respond ONLY with valid JSON:
+{"verified": boolean, "creditScore": number (0-100; <50 = rejected/fraud), "message": "short reason"}`;
+}
 
+async function verifyAction(input) {
+  const ai = getClient();
+  if (!ai) {
+    logger.warn('No AI provider configured — action routed to manual review');
+    return pendingReview('AI verifier not configured');
+  }
+
+  const { imageUrl } = input;
   const messages = [
-    { role: 'system', content: 'You are an AI verifier for green actions. Respond only with valid JSON.' }
+    { role: 'system', content: 'You are an AI verifier for green actions. Respond only with valid JSON.' },
   ];
-
-  // If imageUrl exists, we use a multimodal message
+  const promptText = buildPrompt(input);
   if (imageUrl) {
-    messages.push({
-      role: 'user',
-      content: [
-        { type: "text", text: promptText },
-        { type: "image_url", image_url: { url: imageUrl } }
-      ]
-    });
+    messages.push({ role: 'user', content: [
+      { type: 'text', text: promptText },
+      { type: 'image_url', image_url: { url: imageUrl } },
+    ] });
   } else {
     messages.push({ role: 'user', content: promptText });
   }
 
   try {
-    const modelToUse = ai.isGroq 
-      ? (imageUrl ? 'llama-3.2-11b-vision-preview' : 'llama-3.3-70b-versatile')
-      : 'gpt-4o-mini';
-
-    const apiParams = {
-      model: modelToUse, 
-      messages: messages,
+    const model = imageUrl ? env.aiVisionModel : env.aiTextModel;
+    const res = await ai.chat.completions.create({
+      model,
+      messages,
       temperature: 0.2,
+      response_format: { type: 'json_object' },
+    });
+
+    const parsed = JSON.parse(res.choices[0].message.content.trim());
+    return {
+      verified: Boolean(parsed.verified) && parsed.creditScore >= 50,
+      creditScore: clamp(parsed.creditScore, 0, 100),
+      message: String(parsed.message || '').slice(0, 280),
+      source: 'ai',
     };
-
-    if (!(ai.isGroq && imageUrl)) {
-      apiParams.response_format = { type: "json_object" };
-    }
-
-    const res = await ai.chat.completions.create(apiParams);
-
-    let parsedResult;
-    try {
-      const content = res.choices[0].message.content.trim();
-      parsedResult = JSON.parse(content);
-    } catch (e) {
-      // If the vision model returned plain text without proper JSON
-      // extract just the bool and try to salvage it
-      const content = res.choices[0].message.content.toLowerCase();
-      parsedResult = {
-        verified: content.includes('true') || !content.includes('false'),
-        creditScore: content.includes('false') ? 30 : 85,
-        message: res.choices[0].message.content.substring(0, 150)
-      };
-    }
-
-    return parsedResult;
   } catch (err) {
-    console.error('AI verification failed, using fallback:', err.message);
-    return fallbackVerify(type, co2Estimate, hasGeotag);
+    logger.error({ err: err.message }, 'AI verification failed — routing to manual review');
+    // FAIL SAFE: never auto-approve when the verifier is unavailable.
+    return pendingReview('Automated verification unavailable; queued for manual review');
   }
 }
 
-function fallbackVerify(type, co2Estimate, hasGeotag) {
-  const knownTypes = [
-    'Solar Energy', 'Reforestation', 'Waste Reduction',
-    'Energy Efficiency', 'Clean Transport', 'Urban Agriculture', 'Wind Energy',
-  ];
+function pendingReview(message) {
+  return { verified: false, creditScore: 0, message, needsReview: true, source: 'fallback' };
+}
+function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, Number(n) || 0)); }
 
-  const isKnown = knownTypes.includes(type);
-  const score = isKnown ? (hasGeotag ? 90 : 75) : 70;
+const ECOBOT_SYSTEM = `You are EcoBot, the friendly assistant for EcoCredit — a marketplace for verified carbon credits.
+Help users understand their carbon footprint, suggest impactful green actions, and explain how to earn/buy/retire credits.
+Be concise (2-4 sentences), warm, and practical. 1 credit ≈ 0.1 tonne CO₂ offset.`;
 
-  return {
-    verified: true,
-    creditScore: score,
-    message: isKnown
-      ? `Environmental action '${type}' verified. ${hasGeotag ? 'Geotag confirmed.' : 'No geotag data.'}`
-      : `Action type '${type}' accepted for verification.`,
-  };
+// Conversational assistant. Falls back to a helpful canned reply if no AI key is set.
+async function chat(messages = []) {
+  const ai = getClient();
+  const last = messages[messages.length - 1]?.content || '';
+  if (!ai) {
+    return {
+      reply: `I'm EcoBot 🌿 — I can suggest green actions and explain credits. (Live AI is off until an API key is configured.) For "${String(last).slice(0, 60)}", a great start is tracking your footprint in the Calculator, then offsetting with verified credits in the Marketplace.`,
+      source: 'fallback',
+    };
+  }
+  try {
+    const res = await ai.chat.completions.create({
+      model: env.aiTextModel,
+      messages: [{ role: 'system', content: ECOBOT_SYSTEM }, ...messages.slice(-8)],
+      temperature: 0.6, max_tokens: 300,
+    });
+    return { reply: res.choices[0].message.content.trim(), source: 'ai' };
+  } catch (err) {
+    logger.error({ err: err.message }, 'EcoBot chat failed');
+    return { reply: 'Sorry, I had trouble thinking just now. Try again in a moment! 🌱', source: 'error' };
+  }
 }
 
-module.exports = { verifyAction };
+module.exports = { verifyAction, chat, CO2_SANITY };

@@ -153,7 +153,7 @@ export default function ImpactTracking() {
     const colors: { [key: string]: string } = {
       "Solar Energy": "bg-yellow-100 text-yellow-800",
       "Reforestation": "bg-green-100 text-green-800",
-      "Waste Reduction": "bg-blue-100 text-blue-800",
+      "Waste Reduction": "bg-secondary text-pine-deep",
       "Energy Efficiency": "bg-purple-100 text-purple-800",
       "Urban Agriculture": "bg-emerald-100 text-emerald-800",
       "Clean Transport": "bg-cyan-100 text-cyan-800",
@@ -186,13 +186,13 @@ export default function ImpactTracking() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
         <Leaf className="h-16 w-16 text-gray-400 mx-auto mb-6" />
-        <h2 className="text-2xl font-bold mb-4 text-[#333333]">Access Required</h2>
+        <h2 className="text-2xl font-bold mb-4 text-[#2C453E]">Access Required</h2>
         <p className="text-gray-600 mb-6">
           Please log in to track your environmental impact and view your action history.
         </p>
         <Button 
           onClick={() => window.location.href = '#login'}
-          className="bg-[#008080] hover:bg-[#008080]/90"
+          className="bg-[#3E5F55] hover:bg-[#3E5F55]/90"
         >
           Log In to Continue
         </Button>
@@ -204,7 +204,7 @@ export default function ImpactTracking() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-[#333333]">Impact Tracking</h1>
+        <h1 className="text-4xl font-bold mb-4 text-[#2C453E]">Impact Tracking</h1>
         <p className="text-lg text-gray-600">
           Comprehensive tracking of your environmental actions and their verified impact on the blockchain
         </p>
@@ -215,7 +215,7 @@ export default function ImpactTracking() {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-[#008080] mb-2">{totalStats.totalActions}</p>
+              <p className="text-3xl font-bold text-[#3E5F55] mb-2">{totalStats.totalActions}</p>
               <p className="text-sm text-gray-600">Total Actions Submitted</p>
             </div>
           </CardContent>
@@ -223,7 +223,7 @@ export default function ImpactTracking() {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-[#28a745] mb-2">{totalStats.totalCO2.toFixed(1)}T</p>
+              <p className="text-3xl font-bold text-[#6FA690] mb-2">{totalStats.totalCO2.toFixed(1)}T</p>
               <p className="text-sm text-gray-600">Total CO₂ Offset</p>
             </div>
           </CardContent>
@@ -231,7 +231,7 @@ export default function ImpactTracking() {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-[#00bfff] mb-2">{totalStats.totalCredits}</p>
+              <p className="text-3xl font-bold text-[#C9A98C] mb-2">{totalStats.totalCredits}</p>
               <p className="text-sm text-gray-600">Credits Earned</p>
             </div>
           </CardContent>
@@ -239,7 +239,7 @@ export default function ImpactTracking() {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-[#008080] mb-2">
+              <p className="text-3xl font-bold text-[#3E5F55] mb-2">
                 {totalStats.totalActions > 0 ? Math.round((totalStats.verifiedActions / totalStats.totalActions) * 100) : 0}%
               </p>
               <p className="text-sm text-gray-600">Verification Rate</p>
@@ -253,7 +253,7 @@ export default function ImpactTracking() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <Leaf className="h-5 w-5 text-[#28a745]" />
+              <Leaf className="h-5 w-5 text-[#6FA690]" />
               Action History ({filteredActivities.length} {filteredActivities.length === 1 ? 'record' : 'records'})
             </span>
             <Button 
@@ -356,10 +356,10 @@ export default function ImpactTracking() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="font-semibold text-[#28a745]">
+                        <TableCell className="font-semibold text-[#6FA690]">
                           {activity.co2Offset.toFixed(1)}t
                         </TableCell>
-                        <TableCell className="font-semibold text-[#008080]">
+                        <TableCell className="font-semibold text-[#3E5F55]">
                           {activity.credits}
                         </TableCell>
                         <TableCell>
@@ -388,8 +388,8 @@ export default function ImpactTracking() {
                         <TableRow>
                           <TableCell colSpan={8} className="bg-[#f5f5f5] p-6">
                             <div className="space-y-4">
-                              <h4 className="font-semibold text-[#333333] flex items-center gap-2">
-                                <Shield className="h-4 w-4 text-[#008080]" />
+                              <h4 className="font-semibold text-[#2C453E] flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-[#3E5F55]" />
                                 Detailed Verification & Blockchain Information
                               </h4>
                               
@@ -426,7 +426,7 @@ export default function ImpactTracking() {
                                     <>
                                       <div>
                                         <label className="text-sm font-medium text-gray-600">AI Verification Score:</label>
-                                        <p className="text-lg font-semibold text-[#28a745] mt-1">
+                                        <p className="text-lg font-semibold text-[#6FA690] mt-1">
                                           {activity.verificationDetails.aiScore}%
                                         </p>
                                       </div>
@@ -501,7 +501,7 @@ export default function ImpactTracking() {
                   <p className="text-gray-500 mb-4">No environmental actions recorded yet.</p>
                   <Button 
                     onClick={() => window.location.href = '#submit'}
-                    className="bg-[#008080] hover:bg-[#008080]/90"
+                    className="bg-[#3E5F55] hover:bg-[#3E5F55]/90"
                   >
                     Submit Your First Action
                   </Button>

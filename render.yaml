@@ -1,0 +1,43 @@
+# Render Blueprint — one-click deploy of API + frontend on the free tier.
+# DB: create a free MongoDB Atlas M0 cluster and paste its URI into MONGO_URI.
+services:
+  # ── Backend API (free web service) ──
+  - type: web
+    name: ecocredit-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: node src/index.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: MONGO_URI
+        sync: false        # paste your Atlas connection string in the dashboard
+      - key: CLIENT_URL
+        sync: false        # the deployed frontend URL (for CORS + cookies)
+      - key: GROQ_API_KEY
+        sync: false
+      - key: COOKIE_DOMAIN
+        sync: false
+
+  # ── Frontend (free static site) ──
+  - type: web
+    name: ecocredit-web
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: build
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        sync: false        # https://ecocredit-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

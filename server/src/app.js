@@ -1,16 +1,20 @@
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const pinoHttp = require('pino-http');
 const env = require('./config/env');
+const logger = require('./config/logger');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
-// security headers
+// behind a load balancer / reverse proxy in prod — needed for correct client IPs (rate limiting) & secure cookies
+app.set('trust proxy', 1);
+
 app.use(helmet());
 
-// cors
 app.use(cors({
   origin: env.isProd
     ? [env.clientUrl]
@@ -18,13 +22,20 @@ app.use(cors({
   credentials: true,
 }));
 
-// body parsing
-app.use(express.json({ limit: '10mb' }));
+// Stripe webhook needs the raw body for signature verification — skip JSON parsing there
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/payments/webhook') return next();
+  express.json({ limit: '10mb' })(req, res, next);
+});
+app.use(cookieParser());
 
-// rate limit on all API routes
+// structured request logging
+if (!env.isTest) {
+  app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/health' } }));
+}
+
 app.use('/api', apiLimiter);
 
-// health check — Render pings this
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -36,13 +47,18 @@ app.use('/api/listings', require('./routes/listings'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/favorites', require('./routes/favorites'));
+app.use('/api/leaderboard', require('./routes/leaderboard'));
+app.use('/api/certificates', require('./routes/certificates'));
+app.use('/api/payments', require('./routes/payments'));
+app.use('/api/ai', require('./routes/ai'));
 
-// 404
 app.use((req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
 });
 
-// central error handler — must be last
 app.use(errorHandler);
 
 module.exports = app;

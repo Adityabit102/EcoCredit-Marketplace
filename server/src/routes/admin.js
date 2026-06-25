@@ -8,6 +8,8 @@ router.use(auth, rbac('admin'));
 
 router.get('/users', ctrl.listUsers);
 router.get('/stats', ctrl.stats);
+router.get('/analytics', ctrl.analytics);
+router.get('/actions/pending', ctrl.pendingActions);
 router.patch('/users/:id/plan', ctrl.updatePlan);
 router.patch('/actions/:id/status', ctrl.updateActionStatus);
 

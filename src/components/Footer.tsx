@@ -34,13 +34,13 @@ export default function Footer({ onNavigate }: FooterProps) {
   }
 
   return (
-    <footer className="bg-[#333333] text-white">
+    <footer className="bg-[#2C453E] text-white">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-[#008080] rounded-lg">
+              <div className="p-2 bg-[#3E5F55] rounded-lg">
                 <Leaf className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-semibold">EcoCredit India</span>
@@ -73,7 +73,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 <li key={link.label}>
                   <button 
                     onClick={() => handleLinkClick(link.page)}
-                    className="text-gray-300 hover:text-[#00bfff] transition-colors text-sm cursor-pointer text-left"
+                    className="text-gray-300 hover:text-[#C9A98C] transition-colors text-sm cursor-pointer text-left"
                   >
                     {link.label}
                   </button>
@@ -90,7 +90,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 <li key={link.label}>
                   <button 
                     onClick={() => handleLinkClick(link.page)}
-                    className="text-gray-300 hover:text-[#00bfff] transition-colors text-sm cursor-pointer text-left"
+                    className="text-gray-300 hover:text-[#C9A98C] transition-colors text-sm cursor-pointer text-left"
                   >
                     {link.label}
                   </button>
@@ -107,7 +107,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 <li key={link.label}>
                   <button 
                     onClick={() => handleLinkClick(link.page)}
-                    className="text-gray-300 hover:text-[#00bfff] transition-colors text-sm cursor-pointer text-left"
+                    className="text-gray-300 hover:text-[#C9A98C] transition-colors text-sm cursor-pointer text-left"
                   >
                     {link.label}
                   </button>
@@ -124,15 +124,15 @@ export default function Footer({ onNavigate }: FooterProps) {
           </p>
           <div className="flex items-center gap-6 mt-4 md:mt-0">
             <div className="flex items-center gap-2 text-sm text-gray-300">
-              <div className="w-2 h-2 bg-[#28a745] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#6FA690] rounded-full"></div>
               <span>Blockchain Verified</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-300">
-              <div className="w-2 h-2 bg-[#008080] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#3E5F55] rounded-full"></div>
               <span>AI Powered</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-300">
-              <div className="w-2 h-2 bg-[#00bfff] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#C9A98C] rounded-full"></div>
               <span>Carbon Neutral</span>
             </div>
           </div>

@@ -1,0 +1,9 @@
+# Frontend deploy on Netlify (free tier). Set VITE_API_URL in site env.
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

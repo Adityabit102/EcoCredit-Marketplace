@@ -122,7 +122,22 @@ Follow these instructions to get a copy of the project up and running on your lo
    npm run dev
    ```
 
-3. Open your browser and navigate to `http://localhost:5173`
+3. Open your browser and navigate to `http://localhost:3000`
+
+> **Note:** the backend runs on port **5050** (macOS reserves 5000 for AirPlay). With no `MONGO_URI` set, it boots an **in-memory MongoDB replica set** automatically — zero setup needed for local dev. Set `GROQ_API_KEY` to enable live AI verification (otherwise actions go to manual review).
+
+---
+
+## 🚀 Deploy (100% free tier)
+
+**Stack:** Frontend → Vercel/Netlify · API → Render · Database → MongoDB Atlas (M0).
+
+1. **Database** — create a free [MongoDB Atlas](https://www.mongodb.com/atlas) M0 cluster, allow access from anywhere, copy the connection string.
+2. **API (Render)** — "New → Blueprint", point at this repo. `render.yaml` provisions the API (JWT secrets auto-generated). Set `MONGO_URI` (Atlas) and `CLIENT_URL` (your frontend URL) in the dashboard. Health check: `/health`.
+3. **Frontend (Vercel)** — import the repo; `vercel.json` is preconfigured (build → `build/`, SPA rewrites). Set `VITE_API_URL` to `https://<your-api>.onrender.com/api`. (Netlify works too via `netlify.toml`.)
+4. CORS + cross-site auth cookies are already handled (`SameSite=None; Secure` in production).
+
+A `server/Dockerfile` is included for container/Fly.io/Railway deploys, and CI runs lint + tests + build on every push (`.github/workflows/ci.yml`).
 
 ---
 
