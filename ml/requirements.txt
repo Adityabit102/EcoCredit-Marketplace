@@ -1,3 +1,8 @@
-tensorflow>=2.15
-tensorflowjs>=4.17
-pillow
+# AI validation engine (primary) — lightweight, trains in seconds
+scikit-learn>=1.4
+numpy>=1.26
+
+# Optional: image action-classifier (train_classifier.py). Heavy; needs Python <=3.12.
+# tensorflow>=2.15
+# tensorflowjs>=4.17
+# pillow

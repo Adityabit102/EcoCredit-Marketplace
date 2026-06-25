@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const env = require('../config/env');
 const logger = require('../config/logger');
+const { scoreClaim } = require('./validator');
 
 let client = null;
 
@@ -41,8 +42,24 @@ Respond ONLY with valid JSON:
 
 async function verifyAction(input) {
   const ai = getClient();
+
+  // scikit-learn validation engine — always-on, no API key required
+  const ml = scoreClaim(input);
+
   if (!ai) {
-    logger.warn('No AI provider configured — action routed to manual review');
+    // Use the ML validator as the primary engine when no LLM is configured.
+    if (ml.available) {
+      return {
+        verified: ml.legit,
+        creditScore: Math.round(ml.probability * 100),
+        message: ml.legit
+          ? `Claim authenticated by the ML validation engine (${Math.round(ml.probability * 100)}% confidence).`
+          : 'The validation model flagged this CO₂ estimate as unrealistic — sent for manual review.',
+        source: 'ml',
+        needsReview: !ml.legit,
+      };
+    }
+    logger.warn('No AI provider or ML model — action routed to manual review');
     return pendingReview('AI verifier not configured');
   }
 
@@ -70,15 +87,27 @@ async function verifyAction(input) {
     });
 
     const parsed = JSON.parse(res.choices[0].message.content.trim());
+    // Blend with the scikit-learn validator: if the model strongly flags the
+    // claim as unrealistic, don't auto-verify even if the LLM was lenient.
+    let verified = Boolean(parsed.verified) && parsed.creditScore >= 50;
+    if (ml.available && ml.probability < 0.35) verified = false;
     return {
-      verified: Boolean(parsed.verified) && parsed.creditScore >= 50,
+      verified,
       creditScore: clamp(parsed.creditScore, 0, 100),
       message: String(parsed.message || '').slice(0, 280),
-      source: 'ai',
+      source: ml.available ? 'ai+ml' : 'ai',
     };
   } catch (err) {
-    logger.error({ err: err.message }, 'AI verification failed — routing to manual review');
-    // FAIL SAFE: never auto-approve when the verifier is unavailable.
+    logger.error({ err: err.message }, 'LLM verification failed — falling back to ML validator');
+    // Fall back to the scikit-learn engine before giving up to manual review.
+    if (ml.available) {
+      return {
+        verified: ml.legit,
+        creditScore: Math.round(ml.probability * 100),
+        message: ml.legit ? 'Claim authenticated by the ML validation engine.' : 'Flagged as unrealistic by the validation model — manual review.',
+        source: 'ml', needsReview: !ml.legit,
+      };
+    }
     return pendingReview('Automated verification unavailable; queued for manual review');
   }
 }
