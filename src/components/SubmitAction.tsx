@@ -206,7 +206,7 @@ export default function SubmitAction() {
       
       setAiResult({
         ...verification,
-        confidence: verification.creditScore || 85 // map for UI
+        confidence: verification.creditScore ?? 0 // real score (0 = strongly rejected)
       })
       
       if (verification.verified) {
@@ -231,9 +231,9 @@ export default function SubmitAction() {
         }, 5000)
         
       } else {
-        dispatch({ type: 'ADD_NOTIFICATION', payload: { 
-          type: 'warning', 
-          message: 'Action needs manual review. Our team will verify it within 24 hours.' 
+        dispatch({ type: 'ADD_NOTIFICATION', payload: {
+          type: 'warning',
+          message: verification.message || 'Action flagged for manual review — the CO₂ estimate may be unrealistic.'
         }})
       }
       
@@ -256,6 +256,15 @@ export default function SubmitAction() {
     { id: 'Urban Agriculture', label: 'Urban Agriculture', icon: '🌱', description: 'Community gardens, vertical farms' },
     { id: 'Wind Energy', label: 'Wind Energy', icon: '💨', description: 'Wind turbines, wind farms' }
   ]
+
+  // realistic CO2 (tonnes) for a typical action — mirrors the ML validator's baselines
+  const TYPICAL_CO2: Record<string, number> = {
+    'Reforestation': 0.5, 'Solar Energy': 4, 'Wind Energy': 8, 'Waste Reduction': 1.5,
+    'Clean Transport': 1.2, 'Energy Efficiency': 2, 'Urban Agriculture': 0.8,
+  }
+  const co2Num = parseFloat(co2Estimate) || 0
+  const typical = TYPICAL_CO2[actionType] || 2
+  const unrealistic = !!actionType && co2Num > typical * 5 // >5x typical → likely flagged
 
   if (isSubmitted && aiResult) {
     return (
@@ -539,19 +548,32 @@ export default function SubmitAction() {
               </p>
             </div>
 
-            {co2Estimate && parseFloat(co2Estimate) > 0 && (
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Coins className="h-4 w-4 text-green-600" />
-                  <span className="font-semibold text-green-800">Potential Reward</span>
+            {co2Num > 0 && (
+              unrealistic ? (
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-base">⚠️</span>
+                    <span className="font-semibold text-amber-800">This estimate looks unrealistic</span>
+                  </div>
+                  <p className="text-sm text-amber-700">
+                    {co2Num}t is far above the typical ~{typical}t for {actionType}. Our AI validation engine will likely flag this and route it to manual review — you won't earn credits for it.
+                  </p>
+                  <p className="text-xs text-amber-600 mt-1">Enter a realistic, conservative estimate.</p>
                 </div>
-                <p className="text-sm text-green-700">
-                  Estimated: {Math.floor(parseFloat(co2Estimate) * 10)} EcoCredits
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  Final credits determined by AI verification (85-97% confidence required)
-                </p>
-              </div>
+              ) : (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Coins className="h-4 w-4 text-green-600" />
+                    <span className="font-semibold text-green-800">Potential Reward</span>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    Estimated: {Math.floor(co2Num * 10)} EcoCredits
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Final credits determined by AI verification
+                  </p>
+                </div>
+              )
             )}
 
             <Button 
