@@ -23,7 +23,8 @@ contract CarbonCredit is ERC721, Ownable {
 
     mapping(uint256 => Credit) public credits;
 
-    event CreditIssued(uint256 indexed tokenId, address indexed to, string actionType, uint256 co2Grams);
+    event CreditIssued(uint256 indexed creditId, address indexed owner, string actionType, uint256 amount);
+    event CreditTransferred(uint256 indexed creditId, address indexed from, address indexed to);
     event CreditRetired(uint256 indexed tokenId, address indexed by);
 
     constructor() ERC721("EcoCredit Carbon Credit", "ECO") Ownable(msg.sender) {}
@@ -38,6 +39,23 @@ contract CarbonCredit is ERC721, Ownable {
         _safeMint(to, tokenId);
         credits[tokenId] = Credit(actionType, co2Grams, false, block.timestamp);
         emit CreditIssued(tokenId, to, actionType, co2Grams);
+    }
+
+    /// @notice Transfer a credit you own to another address.
+    function transferCredit(uint256 creditId, address to) external {
+        require(ownerOf(creditId) == msg.sender, "CarbonCredit: not owner");
+        _transfer(msg.sender, to, creditId);
+        emit CreditTransferred(creditId, msg.sender, to);
+    }
+
+    /// @notice Read a credit's details (owner, action type, amount, timestamp).
+    function getCredit(uint256 creditId)
+        external
+        view
+        returns (address owner, string memory actionType, uint256 amount, uint256 timestamp)
+    {
+        Credit memory c = credits[creditId];
+        return (ownerOf(creditId), c.actionType, c.co2Grams, c.issuedAt);
     }
 
     /// @notice Permanently retire a credit you own to claim its offset.
