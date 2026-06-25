@@ -16,6 +16,7 @@ import Admin from "./components/Admin"
 import Calculator from "./components/Calculator"
 import Settings from "./components/Settings"
 import PublicProfile from "./components/PublicProfile"
+import InfoPage from "./components/InfoPage"
 import ProofPage from "./components/ProofPage"
 import ResetPassword from "./components/ResetPassword"
 import NotFound from "./components/NotFound"
@@ -61,6 +62,7 @@ function AppContent() {
     // Public deep-link pages (work logged in or out)
     if (state.currentPage.startsWith('proof:')) return <ProofPage proofId={state.currentPage.slice(6)} onBack={back} />
     if (state.currentPage.startsWith('profile:')) return <PublicProfile userId={state.currentPage.slice(8)} onBack={back} />
+    if (state.currentPage.startsWith('info:')) return <InfoPage topic={state.currentPage.slice(5)} onBack={back} />
 
     // Pre-login pages
     if (!state.isAuthenticated) {

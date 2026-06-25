@@ -7,22 +7,22 @@ interface FooterProps {
 export default function Footer({ onNavigate }: FooterProps) {
   const footerLinks = {
     about: [
-      { label: "About EcoCredit", page: "about" },
-      { label: "How It Works", page: "about" },
-      { label: "Team", page: "about" },
-      { label: "Careers", page: "about" }
+      { label: "About EcoCredit", page: "home" },
+      { label: "How It Works", page: "home" },
+      { label: "Team", page: "info:team" },
+      { label: "Careers", page: "info:careers" }
     ],
     support: [
-      { label: "FAQ", page: "about" },
-      { label: "Help Center", page: "about" },
-      { label: "Contact Support", page: "about" },
-      { label: "Community", page: "marketplace" }
+      { label: "FAQ", page: "info:faq" },
+      { label: "Help Center", page: "info:help" },
+      { label: "Contact Support", page: "info:contact" },
+      { label: "Community", page: "leaderboard" }
     ],
     legal: [
-      { label: "Terms of Service", page: "about" },
-      { label: "Privacy Policy", page: "about" },
-      { label: "Cookie Policy", page: "about" },
-      { label: "Compliance", page: "about" }
+      { label: "Terms of Service", page: "info:terms" },
+      { label: "Privacy Policy", page: "info:privacy" },
+      { label: "Cookie Policy", page: "info:cookie" },
+      { label: "Compliance", page: "info:compliance" }
     ]
   }
 
