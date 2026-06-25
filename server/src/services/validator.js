@@ -31,7 +31,6 @@ function buildFeatures(m, { type, co2Estimate, hasGeotag, description }) {
   const ratio = Math.max((co2Estimate || 0) / base, 1e-6);
   return [
     Math.log10(ratio),
-    co2Estimate || 0,
     hasGeotag ? 1 : 0,
     Math.min((description || '').length, 500) / 500,
   ];

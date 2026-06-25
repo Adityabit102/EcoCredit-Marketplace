@@ -30,13 +30,15 @@ TYPICAL = {
     "Clean Transport": 1.2, "Energy Efficiency": 2.0, "Urban Agriculture": 0.8,
 }
 TYPES = list(TYPICAL)
-FEATURES = ["log_ratio", "co2_estimate", "has_geotag", "desc_norm"]
+# ratio-vs-typical is the cross-type-normalized signal; raw co2 is intentionally
+# excluded because the same value can be legit for one action type and fraud for another.
+FEATURES = ["log_ratio", "has_geotag", "desc_norm"]
 
 
 def make_features(type_name, co2, has_geotag, desc_len):
     base = TYPICAL.get(type_name, 1.0)
     ratio = max(co2 / base, 1e-6)
-    return [math.log10(ratio), co2, 1.0 if has_geotag else 0.0, min(desc_len, 500) / 500.0]
+    return [math.log10(ratio), 1.0 if has_geotag else 0.0, min(desc_len, 500) / 500.0]
 
 
 def generate(n=8000, seed=42):
@@ -47,16 +49,18 @@ def generate(n=8000, seed=42):
         base = TYPICAL[t]
         legit = rng.random() < 0.55
         if legit:
-            co2 = base * rng.uniform(0.3, 3.0)          # realistic band
-            geo = rng.random() < 0.8
-            desc = int(rng.integers(40, 400))
+            # generous realistic band — scale of real actions varies a lot
+            # (a community drive can offset many times a single sapling)
+            co2 = base * rng.uniform(0.2, 8.0)
         else:
-            if rng.random() < 0.75:
-                co2 = base * rng.uniform(5, 80)         # wildly inflated
+            if rng.random() < 0.8:
+                co2 = base * rng.uniform(15, 1500)      # wildly inflated (e.g. 500t for a sapling)
             else:
-                co2 = base * rng.uniform(0.001, 0.05)   # implausibly tiny
-            geo = rng.random() < 0.3
-            desc = int(rng.integers(0, 50))
+                co2 = base * rng.uniform(0.001, 0.04)   # implausibly tiny
+        # geotag/description are weak context, INDEPENDENT of legitimacy here, so the
+        # model can't be fooled into approving an absurd CO2 just because a photo was geotagged
+        geo = rng.random() < 0.6
+        desc = int(rng.integers(0, 400))
         X.append(make_features(t, co2, geo, desc))
         y.append(1 if legit else 0)
     return np.array(X), np.array(y)

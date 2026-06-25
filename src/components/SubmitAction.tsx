@@ -264,7 +264,7 @@ export default function SubmitAction() {
   }
   const co2Num = parseFloat(co2Estimate) || 0
   const typical = TYPICAL_CO2[actionType] || 2
-  const unrealistic = !!actionType && co2Num > typical * 5 // >5x typical → likely flagged
+  const unrealistic = !!actionType && co2Num > typical * 10 // only warn on clearly excessive estimates
 
   if (isSubmitted && aiResult) {
     return (
