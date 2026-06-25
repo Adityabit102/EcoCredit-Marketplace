@@ -9,7 +9,8 @@ import { Search, Filter, Download, ExternalLink, Shield, Calendar, MapPin, Leaf,
 import { useApp } from "../contexts/AppContext"
 
 export default function ImpactTracking() {
-  const { state } = useApp()
+  const { state, dispatch } = useApp()
+  const go = (page: string) => dispatch({ type: 'SET_PAGE', payload: page })
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
@@ -190,8 +191,8 @@ export default function ImpactTracking() {
         <p className="text-gray-600 mb-6">
           Please log in to track your environmental impact and view your action history.
         </p>
-        <Button 
-          onClick={() => window.location.href = '#login'}
+        <Button
+          onClick={() => go('login')}
           className="bg-[#3E5F55] hover:bg-[#3E5F55]/90"
         >
           Log In to Continue
@@ -472,10 +473,10 @@ export default function ImpactTracking() {
                                       </Button>
                                     )}
                                     {activity.source === "action" && activity.image && (
-                                      <Button variant="outline" size="sm">
-                                        <img 
-                                          src={activity.image} 
-                                          alt="Action" 
+                                      <Button variant="outline" size="sm" onClick={() => window.open(activity.image, '_blank')}>
+                                        <img
+                                          src={activity.image}
+                                          alt="Action"
                                           className="h-4 w-4 mr-2 rounded"
                                         />
                                         View Photo
@@ -499,8 +500,8 @@ export default function ImpactTracking() {
               {allActivities.length === 0 ? (
                 <>
                   <p className="text-gray-500 mb-4">No environmental actions recorded yet.</p>
-                  <Button 
-                    onClick={() => window.location.href = '#submit'}
+                  <Button
+                    onClick={() => go('submit')}
                     className="bg-[#3E5F55] hover:bg-[#3E5F55]/90"
                   >
                     Submit Your First Action
