@@ -19,14 +19,11 @@ export default function Login({ onNavigate, onLogin }: LoginProps) {
   const [info, setInfo] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const doLogin = async (creds: { email: string; password: string }) => {
     setError('')
-    if (!email || !password) return setError('Please fill in all fields')
-    if (!email.includes('@')) return setError('Please enter a valid email address')
     setIsLoading(true)
     try {
-      const data = await api.auth.login({ email, password })
+      const data = await api.auth.login(creds)
       localStorage.setItem('ecocredit_access_token', data.accessToken)
       onLogin(data.user)
     } catch (err: any) {
@@ -34,6 +31,20 @@ export default function Login({ onNavigate, onLogin }: LoginProps) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!email || !password) return setError('Please fill in all fields')
+    if (!email.includes('@')) return setError('Please enter a valid email address')
+    await doLogin({ email, password })
+  }
+
+  const quickLogin = (demoEmail: string) => {
+    setEmail(demoEmail)
+    setPassword('password123')
+    doLogin({ email: demoEmail, password: 'password123' })
   }
 
   return (
@@ -80,8 +91,39 @@ export default function Login({ onNavigate, onLogin }: LoginProps) {
         </GradientButton>
       </form>
 
-      <div className="mt-6 rounded-xl bg-secondary/50 border border-border p-3 text-xs text-muted-foreground">
-        <span className="font-medium text-pine">Demo:</span> admin@ecocredit.com · maya@ecocredit.com — password <span className="font-mono">password123</span>
+      <div className="mt-6">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Quick demo login</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => quickLogin('maya@ecocredit.com')}
+            className="group flex items-center gap-3 rounded-xl border border-sage/60 bg-mint/40 px-4 py-3 text-left transition-all hover:border-pine hover:bg-mint/70 hover:shadow-sm disabled:opacity-50"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pine/10 text-base">🌱</span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-pine">Maya</span>
+              <span className="block text-xs text-muted-foreground truncate">Seller account</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => quickLogin('admin@ecocredit.com')}
+            className="group flex items-center gap-3 rounded-xl border border-sage/60 bg-sand/40 px-4 py-3 text-left transition-all hover:border-pine hover:bg-sand/70 hover:shadow-sm disabled:opacity-50"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pine/10 text-base">🛡️</span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-pine">Admin</span>
+              <span className="block text-xs text-muted-foreground truncate">Full access</span>
+            </span>
+          </button>
+        </div>
+        <p className="mt-2 text-center text-xs text-muted-foreground">Instant access — no credentials needed</p>
       </div>
 
       <p className="mt-6 text-sm text-muted-foreground text-center">
