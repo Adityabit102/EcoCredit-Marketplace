@@ -203,7 +203,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
   const refreshDashboard = async () => {
-    if (!state.isAuthenticated) return;
+    // guard on the token (read fresh) not state.isAuthenticated — during bootstrap the
+    // LOGIN dispatch hasn't flushed yet, so the stale closure value would skip the load
+    if (!localStorage.getItem('ecocredit_access_token')) return;
     try {
       const data = await api.users.dashboard();
       dispatch({ 
