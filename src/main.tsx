@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import "./styles/globals.css";
 
 // Optional error monitoring — activates only when VITE_SENTRY_DSN is set.
@@ -10,4 +11,8 @@ if (dsn) {
   }).catch(() => {});
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);

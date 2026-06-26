@@ -2,11 +2,23 @@ import { Suspense, type ReactNode } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Float, OrbitControls } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
+import ErrorBoundary from '../ErrorBoundary'
 import GrowingTree from './GrowingTree'
 import EnergyParticles from './EnergyParticles'
 import ImpactGlobe from './ImpactGlobe'
 import SolarField from './SolarField'
 import { WindTurbine, HydroDroplet, RecycleRings, LeafSwarm, EcoSphere, Dam } from './extras'
+
+// Phones/tablets choke on heavy bloom postprocessing + high DPR — detect once so we
+// can render a lighter scene (no EffectComposer, capped DPR) instead of crashing.
+let _mobile: boolean | null = null
+function isMobile() {
+  if (_mobile !== null) return _mobile
+  try {
+    _mobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
+  } catch { _mobile = false }
+  return _mobile
+}
 
 // Shared, palette-tuned lighting (no external HDRI — fully offline-safe).
 function Lights() {
@@ -46,32 +58,43 @@ function hasWebGL() {
 function Frame({ children, className, interactive, camera, bloom = 0.7, autoRotate = true, autoRotateSpeed = 0.7, target = [0, 0, 0] }: Props & {
   children: ReactNode; camera: [number, number, number]; bloom?: number; autoRotate?: boolean; autoRotateSpeed?: number; target?: [number, number, number]
 }) {
-  // Themed poster fallback when WebGL isn't available (keeps layout, never blank)
-  if (typeof window !== 'undefined' && !hasWebGL()) {
-    return (
-      <div className={className}>
-        <div className="h-full w-full ring-grid animate-pulse-glow"
-          style={{ background: 'radial-gradient(circle at 50% 40%, #A9CDBA33, transparent 70%), linear-gradient(160deg,#3E5F55,#2C453E)' }} />
-      </div>
-    )
-  }
-  return (
+  // Themed poster fallback — used when WebGL is unavailable AND as the error fallback
+  // if the 3D scene crashes (keeps layout intact, never a blank box).
+  const poster = (
     <div className={className}>
-      <Canvas shadows dpr={[1, 1.8]} camera={{ position: camera, fov: 42 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
-        <Suspense fallback={null}>
-          <Lights />
-          {children}
-          <OrbitControls
-            enableZoom={false} enablePan={false}
-            target={target}
-            autoRotate={autoRotate} autoRotateSpeed={autoRotateSpeed}
-            enabled={!!interactive}
-            minPolarAngle={Math.PI / 3.2} maxPolarAngle={Math.PI / 1.85}
-          />
-          {bloom > 0 && <Glow intensity={bloom} />}
-        </Suspense>
-      </Canvas>
+      <div className="h-full w-full ring-grid animate-pulse-glow"
+        style={{ background: 'radial-gradient(circle at 50% 40%, #A9CDBA33, transparent 70%), linear-gradient(160deg,#3E5F55,#2C453E)' }} />
     </div>
+  )
+
+  if (typeof window !== 'undefined' && !hasWebGL()) return poster
+
+  const mobile = isMobile()
+  return (
+    <ErrorBoundary fallback={poster}>
+      <div className={className}>
+        <Canvas
+          shadows={!mobile}
+          dpr={mobile ? 1 : [1, 1.8]}
+          camera={{ position: camera, fov: 42 }}
+          gl={{ antialias: !mobile, alpha: true, powerPreference: mobile ? 'default' : 'high-performance' }}
+        >
+          <Suspense fallback={null}>
+            <Lights />
+            {children}
+            <OrbitControls
+              enableZoom={false} enablePan={false}
+              target={target}
+              autoRotate={autoRotate} autoRotateSpeed={autoRotateSpeed}
+              enabled={!!interactive}
+              minPolarAngle={Math.PI / 3.2} maxPolarAngle={Math.PI / 1.85}
+            />
+            {/* postprocessing is the top mobile-GPU crash source — desktop only */}
+            {bloom > 0 && !mobile && <Glow intensity={bloom} />}
+          </Suspense>
+        </Canvas>
+      </div>
+    </ErrorBoundary>
   )
 }
 
@@ -91,8 +114,8 @@ export function TreeScene({ progress = 1, className = '', interactive = false, f
           <GrowingTree progress={progress} />
         </group>
       </Float>
-      <LeafSwarm count={fill ? 55 : 40} />
-      <EnergyParticles count={fill ? 320 : 240} />
+      <LeafSwarm count={isMobile() ? 18 : fill ? 55 : 40} />
+      <EnergyParticles count={isMobile() ? 90 : fill ? 320 : 240} />
     </Frame>
   )
 }
