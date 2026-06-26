@@ -49,13 +49,11 @@ if (env.nodeEnv !== 'test') {
 
   const missing = required.filter((k) => !env[k]);
   if (missing.length) {
-    // eslint-disable-next-line no-console
     console.error(`FATAL: missing required env var(s): ${missing.join(', ')}`);
     process.exit(1);
   }
 
   if (env.isProd && (env.jwtSecret.length < 32 || env.jwtRefreshSecret.length < 32)) {
-    // eslint-disable-next-line no-console
     console.error('FATAL: JWT secrets must be at least 32 chars in production');
     process.exit(1);
   }

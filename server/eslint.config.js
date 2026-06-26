@@ -5,7 +5,7 @@ module.exports = [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'commonjs',
-      globals: { process: 'readonly', console: 'readonly', require: 'readonly', module: 'writable', __dirname: 'readonly', Buffer: 'readonly', setTimeout: 'readonly', setInterval: 'readonly' },
+      globals: { process: 'readonly', console: 'readonly', require: 'readonly', module: 'writable', __dirname: 'readonly', Buffer: 'readonly', setTimeout: 'readonly', setInterval: 'readonly', clearTimeout: 'readonly', clearInterval: 'readonly', fetch: 'readonly', URL: 'readonly', URLSearchParams: 'readonly', AbortController: 'readonly' },
     },
     rules: {
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_|^next$|^req$|^res$' }],
