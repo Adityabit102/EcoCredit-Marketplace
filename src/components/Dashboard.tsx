@@ -755,7 +755,7 @@ export default function Dashboard() {
         <CardContent>
           <div className="space-y-3">
             {state.transactions.slice(0, 5).map((transaction) => (
-              <div key={transaction.id} className="flex items-center gap-8 p-4 bg-[#f5f5f5] rounded-lg">
+              <div key={transaction.id} className="flex items-center gap-3 sm:gap-8 p-4 bg-[#f5f5f5] rounded-lg">
                 {/* Icon */}
                 <div className={`flex-shrink-0 p-2 rounded-full ${
                   transaction.type === 'earned' ? 'bg-green-100' :
@@ -774,7 +774,7 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Credits & Amount - Fixed width for alignment */}
-                <div className="flex-shrink-0 text-right min-w-[140px]">
+                <div className="flex-shrink-0 text-right sm:min-w-[140px]">
                   <p className="font-semibold text-[#2C453E]">{transaction.credits} credits</p>
                   {transaction.amount && (
                     <p className={`text-sm font-medium ${transaction.type === 'sold' ? 'text-green-600' : 'text-red-600'}`}>
@@ -785,7 +785,7 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Status Badge - Fixed width */}
-                <div className="flex-shrink-0 min-w-[110px] flex justify-end">
+                <div className="flex-shrink-0 sm:min-w-[110px] flex justify-end">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                     transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
                     transaction.status === 'verified' ? 'bg-secondary text-pine-deep' :
